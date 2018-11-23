@@ -1,11 +1,16 @@
-{ pkgs, stdenv, cmake, uriparser, lksctp-tools, curl
+{ pkgs, stdenv, cmake, uriparser, lksctp-tools, curl, fetchFromGitHub
 , pkgconfig, zlib, openssl_1_1, uthash, check, enableVerboseWebrtc ? false }:
 
 stdenv.mkDerivation rec {
    name = "kite-${version}";
    version = "0.1.0";
 
-   src = ./../../../stork-cpp + "/deploy/kite-${version}.tar.bz2";
+   src = fetchFromGitHub {
+     owner = "kitecomputing";
+     repo = "kite";
+     rev = "925eca8ef1db3117672796bfe675442d3041236b";
+     sha256 = "154b6l8llv5d48ckn6chi3fqsv1wqw6m257x9rqx3sa3ipjswq5s";
+   };
 
    nativeBuildInputs = [ cmake pkgconfig ];
    buildInputs = [ uriparser lksctp-tools curl openssl_1_1 uthash check ];
