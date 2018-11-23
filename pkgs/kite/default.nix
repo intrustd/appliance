@@ -8,14 +8,14 @@ stdenv.mkDerivation rec {
    src = fetchFromGitHub {
      owner = "kitecomputing";
      repo = "kite";
-     rev = "925eca8ef1db3117672796bfe675442d3041236b";
-     sha256 = "154b6l8llv5d48ckn6chi3fqsv1wqw6m257x9rqx3sa3ipjswq5s";
+     rev = "516d9ae94531aa98c6ad67cef4087e356d0c48cc";
+     sha256 = "1aj7khyf8j5pyc8z4gnl1i78gzzq34jx2kv30clzpsikgwwxj6q5";
    };
 
    nativeBuildInputs = [ cmake pkgconfig ];
    buildInputs = [ uriparser lksctp-tools curl openssl_1_1 uthash check ];
 
-   outputs = [ "out" "flockd" "applianced" "appliancectl" ];
+   outputs = [ "out" "flockd" "applianced" "appliancectl" "nix" ];
 
 #   configurePhase = ''
 #     cmake -DCMAKE_BUILD_TYPE=Release .
@@ -39,6 +39,8 @@ stdenv.mkDerivation rec {
      mv bin/app-instance-init $applianced/bin/app-instance-init
      mv bin/persona-init $applianced/bin/persona-init
      mv bin/webrtc-proxy $applianced/bin/webrtc-proxy
+
+     cp -R $src/nix $nix
    '';
 
    meta = with stdenv.lib; {
