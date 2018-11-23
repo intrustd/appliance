@@ -1,0 +1,46 @@
+From 913bfe548eb894e39bfcb2a6f5ddaf2a48f69e6d Mon Sep 17 00:00:00 2001
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Date: Tue, 31 Oct 2017 13:28:16 +0000
+Subject: [PATCH 12/17] sctp: fix error return code in sctp_send_add_streams()
+
+Fix to returnerror code -ENOMEM from the sctp_make_strreset_addstrm()
+error handling case instead of 0. 'retval' can be overwritten to 0 after
+call sctp_stream_alloc_out().
+
+Fixes: e090abd0d81c ("sctp: factor out stream->out allocation")
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Acked-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/sctp/stream.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/sctp/stream.c b/net/sctp/stream.c
+index 0bcca9f94b79..757be10852ca 100644
+--- a/net/sctp/stream.c
++++ b/net/sctp/stream.c
+@@ -396,7 +396,7 @@ int sctp_send_add_streams(struct sctp_association *asoc,
+ {
+ 	struct sctp_stream *stream = &asoc->stream;
+ 	struct sctp_chunk *chunk = NULL;
+-	int retval = -ENOMEM;
++	int retval;
+ 	__u32 outcnt, incnt;
+ 	__u16 out, in;
+ 
+@@ -428,8 +428,10 @@ int sctp_send_add_streams(struct sctp_association *asoc,
+ 	}
+ 
+ 	chunk = sctp_make_strreset_addstrm(asoc, out, in);
+-	if (!chunk)
++	if (!chunk) {
++		retval = -ENOMEM;
+ 		goto out;
++	}
+ 
+ 	asoc->strreset_chunk = chunk;
+ 	sctp_chunk_hold(asoc->strreset_chunk);
+-- 
+2.18.1
+

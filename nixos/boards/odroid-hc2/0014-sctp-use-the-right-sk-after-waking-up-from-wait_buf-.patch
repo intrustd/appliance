@@ -1,0 +1,90 @@
+From d34d42f6d0d358f80ffa268f9071d5691902d01d Mon Sep 17 00:00:00 2001
+From: Xin Long <lucien.xin@gmail.com>
+Date: Wed, 15 Nov 2017 16:57:26 +0800
+Subject: [PATCH 14/17] sctp: use the right sk after waking up from wait_buf
+ sleep
+
+Commit dfcb9f4f99f1 ("sctp: deny peeloff operation on asocs with threads
+sleeping on it") fixed the race between peeloff and wait sndbuf by
+checking waitqueue_active(&asoc->wait) in sctp_do_peeloff().
+
+But it actually doesn't work, as even if waitqueue_active returns false
+the waiting sndbuf thread may still not yet hold sk lock. After asoc is
+peeled off, sk is not asoc->base.sk any more, then to hold the old sk
+lock couldn't make assoc safe to access.
+
+This patch is to fix this by changing to hold the new sk lock if sk is
+not asoc->base.sk, meanwhile, also set the sk in sctp_sendmsg with the
+new sk.
+
+With this fix, there is no more race between peeloff and waitbuf, the
+check 'waitqueue_active' in sctp_do_peeloff can be removed.
+
+Thanks Marcelo and Neil for making this clear.
+
+v1->v2:
+  fix it by changing to lock the new sock instead of adding a flag in asoc.
+
+Suggested-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/sctp/socket.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index e4f8c1e3604b..ed609b709f7f 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -85,7 +85,7 @@
+ static int sctp_writeable(struct sock *sk);
+ static void sctp_wfree(struct sk_buff *skb);
+ static int sctp_wait_for_sndbuf(struct sctp_association *asoc, long *timeo_p,
+-				size_t msg_len);
++				size_t msg_len, struct sock **orig_sk);
+ static int sctp_wait_for_packet(struct sock *sk, int *err, long *timeo_p);
+ static int sctp_wait_for_connect(struct sctp_association *, long *timeo_p);
+ static int sctp_wait_for_accept(struct sock *sk, long timeo);
+@@ -1985,7 +1985,7 @@ static int sctp_sendmsg(struct sock *sk, struct msghdr *msg, size_t msg_len)
+ 	timeo = sock_sndtimeo(sk, msg->msg_flags & MSG_DONTWAIT);
+ 	if (!sctp_wspace(asoc)) {
+ 		/* sk can be changed by peel off when waiting for buf. */
+-		err = sctp_wait_for_sndbuf(asoc, &timeo, msg_len);
++		err = sctp_wait_for_sndbuf(asoc, &timeo, msg_len, &sk);
+ 		if (err) {
+ 			if (err == -ESRCH) {
+ 				/* asoc is already dead. */
+@@ -8039,7 +8039,7 @@ void sctp_sock_rfree(struct sk_buff *skb)
+ 
+ /* Helper function to wait for space in the sndbuf.  */
+ static int sctp_wait_for_sndbuf(struct sctp_association *asoc, long *timeo_p,
+-				size_t msg_len)
++				size_t msg_len, struct sock **orig_sk)
+ {
+ 	struct sock *sk = asoc->base.sk;
+ 	long current_timeo = *timeo_p;
+@@ -8073,13 +8073,18 @@ static int sctp_wait_for_sndbuf(struct sctp_association *asoc, long *timeo_p,
+ 		release_sock(sk);
+ 		current_timeo = schedule_timeout(current_timeo);
+ 		lock_sock(sk);
+-		if (sk != asoc->base.sk)
+-			goto do_error;
++
++		if (sk != asoc->base.sk) {
++			release_sock(sk);
++			sk = asoc->base.sk;
++			lock_sock(sk);
++		}
+ 
+ 		*timeo_p = current_timeo;
+ 	}
+ 
+ out:
++	*orig_sk = sk;
+ 	finish_wait(&asoc->wait, &wait);
+ 
+ 	/* Release the association's refcnt.  */
+-- 
+2.18.1
+

@@ -1,0 +1,55 @@
+From 83946d300dd820bbbf65c4f3bb6551a7adeea463 Mon Sep 17 00:00:00 2001
+From: Xin Long <lucien.xin@gmail.com>
+Date: Wed, 15 Nov 2017 16:55:54 +0800
+Subject: [PATCH 13/17] sctp: do not free asoc when it is already dead in
+ sctp_sendmsg
+
+Now in sctp_sendmsg sctp_wait_for_sndbuf could schedule out without
+holding sock sk. It means the current asoc can be freed elsewhere,
+like when receiving an abort packet.
+
+If the asoc is just created in sctp_sendmsg and sctp_wait_for_sndbuf
+returns err, the asoc will be freed again due to new_asoc is not nil.
+An use-after-free issue would be triggered by this.
+
+This patch is to fix it by setting new_asoc with nil if the asoc is
+already dead when cpu schedules back, so that it will not be freed
+again in sctp_sendmsg.
+
+v1->v2:
+  set new_asoc as nil in sctp_sendmsg instead of sctp_wait_for_sndbuf.
+
+Suggested-by: Neil Horman <nhorman@tuxdriver.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/sctp/socket.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index 070793988eb1..e4f8c1e3604b 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -1968,8 +1968,15 @@ static int sctp_sendmsg(struct sock *sk, struct msghdr *msg, size_t msg_len)
+ 	/* Allocate sctp_stream_out_ext if not already done */
+ 	if (unlikely(!asoc->stream.out[sinfo->sinfo_stream].ext)) {
+ 		err = sctp_stream_init_ext(&asoc->stream, sinfo->sinfo_stream);
+-		if (err)
+-			goto out_free;
++		if (err) {
++                        if (err == -ESRCH) {
++                                /* asoc is already dead. */
++                                new_asoc = NULL;
++                                err = -EPIPE;
++                        }
++
++		        goto out_free;
++		}
+ 	}
+ 
+ 	if (sctp_wspace(asoc) < msg_len)
+-- 
+2.18.1
+

@@ -1,0 +1,33 @@
+From 739d3abfa5078c9baa664533f7507ba21fd5e777 Mon Sep 17 00:00:00 2001
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Date: Tue, 3 Oct 2017 19:20:12 -0300
+Subject: [PATCH 04/17] sctp: introduce sctp_chunk_stream_no
+
+Add a helper to fetch the stream number from a given chunk.
+
+Tested-by: Xin Long <lucien.xin@gmail.com>
+Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ include/net/sctp/structs.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/net/sctp/structs.h b/include/net/sctp/structs.h
+index 46b63d40c74e..3edc1b8efe43 100644
+--- a/include/net/sctp/structs.h
++++ b/include/net/sctp/structs.h
+@@ -642,6 +642,11 @@ void sctp_init_addrs(struct sctp_chunk *, union sctp_addr *,
+ 		     union sctp_addr *);
+ const union sctp_addr *sctp_source(const struct sctp_chunk *chunk);
+ 
++static inline __u16 sctp_chunk_stream_no(struct sctp_chunk *ch)
++{
++	return ntohs(ch->subh.data_hdr->stream);
++}
++
+ enum {
+ 	SCTP_ADDR_NEW,		/* new address added to assoc/ep */
+ 	SCTP_ADDR_SRC,		/* address can be used as source */
+-- 
+2.18.1
+

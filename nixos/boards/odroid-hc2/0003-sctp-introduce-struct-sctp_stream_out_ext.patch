@@ -1,0 +1,212 @@
+From 5ca6d1bf4f858fc95ef52dcda091cbf8f6841cdf Mon Sep 17 00:00:00 2001
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Date: Tue, 3 Oct 2017 19:20:11 -0300
+Subject: [PATCH 03/17] sctp: introduce struct sctp_stream_out_ext
+
+With the stream schedulers, sctp_stream_out will become too big to be
+allocated by kmalloc and as we need to allocate with BH disabled, we
+cannot use __vmalloc in sctp_stream_init().
+
+This patch moves out the stats from sctp_stream_out to
+sctp_stream_out_ext, which will be allocated only when the application
+tries to sendmsg something on it.
+
+Just the introduction of sctp_stream_out_ext would already fix the issue
+described above by splitting the allocation in two. Moving the stats
+to it also reduces the pressure on the allocator as we will ask for less
+memory atomically when creating the socket and we will use GFP_KERNEL
+later.
+
+Then, for stream schedulers, we will just use sctp_stream_out_ext.
+
+Tested-by: Xin Long <lucien.xin@gmail.com>
+Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ include/net/sctp/structs.h | 10 ++++++++--
+ net/sctp/chunk.c           |  6 +++---
+ net/sctp/outqueue.c        |  4 ++--
+ net/sctp/socket.c          | 27 +++++++++++++++++++++------
+ net/sctp/stream.c          | 16 ++++++++++++++++
+ 5 files changed, 50 insertions(+), 13 deletions(-)
+
+diff --git a/include/net/sctp/structs.h b/include/net/sctp/structs.h
+index 8e1e1dc490fd..46b63d40c74e 100644
+--- a/include/net/sctp/structs.h
++++ b/include/net/sctp/structs.h
+@@ -84,6 +84,7 @@ struct sctp_ulpq;
+ struct sctp_ep_common;
+ struct crypto_shash;
+ struct sctp_stream;
++struct sctp_stream_out;
+ 
+ 
+ #include <net/sctp/tsnmap.h>
+@@ -380,6 +381,7 @@ struct sctp_sender_hb_info {
+ 
+ int sctp_stream_init(struct sctp_stream *stream, __u16 outcnt, __u16 incnt,
+ 		     gfp_t gfp);
++int sctp_stream_init_ext(struct sctp_stream *stream, __u16 sid);
+ void sctp_stream_free(struct sctp_stream *stream);
+ void sctp_stream_clear(struct sctp_stream *stream);
+ void sctp_stream_update(struct sctp_stream *stream, struct sctp_stream *new);
+@@ -1315,11 +1317,15 @@ struct sctp_inithdr_host {
+ 	__u32 initial_tsn;
+ };
+ 
++struct sctp_stream_out_ext {
++	__u64 abandoned_unsent[SCTP_PR_INDEX(MAX) + 1];
++	__u64 abandoned_sent[SCTP_PR_INDEX(MAX) + 1];
++};
++
+ struct sctp_stream_out {
+ 	__u16	ssn;
+ 	__u8	state;
+-	__u64	abandoned_unsent[SCTP_PR_INDEX(MAX) + 1];
+-	__u64	abandoned_sent[SCTP_PR_INDEX(MAX) + 1];
++	struct sctp_stream_out_ext *ext;
+ };
+ 
+ struct sctp_stream_in {
+diff --git a/net/sctp/chunk.c b/net/sctp/chunk.c
+index acd9380a56fb..d56f59539765 100644
+--- a/net/sctp/chunk.c
++++ b/net/sctp/chunk.c
+@@ -313,10 +313,10 @@ int sctp_chunk_abandoned(struct sctp_chunk *chunk)
+ 
+ 		if (chunk->sent_count) {
+ 			chunk->asoc->abandoned_sent[SCTP_PR_INDEX(TTL)]++;
+-			streamout->abandoned_sent[SCTP_PR_INDEX(TTL)]++;
++			streamout->ext->abandoned_sent[SCTP_PR_INDEX(TTL)]++;
+ 		} else {
+ 			chunk->asoc->abandoned_unsent[SCTP_PR_INDEX(TTL)]++;
+-			streamout->abandoned_unsent[SCTP_PR_INDEX(TTL)]++;
++			streamout->ext->abandoned_unsent[SCTP_PR_INDEX(TTL)]++;
+ 		}
+ 		return 1;
+ 	} else if (SCTP_PR_RTX_ENABLED(chunk->sinfo.sinfo_flags) &&
+@@ -325,7 +325,7 @@ int sctp_chunk_abandoned(struct sctp_chunk *chunk)
+ 			&chunk->asoc->stream.out[chunk->sinfo.sinfo_stream];
+ 
+ 		chunk->asoc->abandoned_sent[SCTP_PR_INDEX(RTX)]++;
+-		streamout->abandoned_sent[SCTP_PR_INDEX(RTX)]++;
++		streamout->ext->abandoned_sent[SCTP_PR_INDEX(RTX)]++;
+ 		return 1;
+ 	} else if (!SCTP_PR_POLICY(chunk->sinfo.sinfo_flags) &&
+ 		   chunk->msg->expires_at &&
+diff --git a/net/sctp/outqueue.c b/net/sctp/outqueue.c
+index 39ac91060bc2..97d1f1e26ae4 100644
+--- a/net/sctp/outqueue.c
++++ b/net/sctp/outqueue.c
+@@ -366,7 +366,7 @@ static int sctp_prsctp_prune_sent(struct sctp_association *asoc,
+ 		streamout = &asoc->stream.out[chk->sinfo.sinfo_stream];
+ 		asoc->sent_cnt_removable--;
+ 		asoc->abandoned_sent[SCTP_PR_INDEX(PRIO)]++;
+-		streamout->abandoned_sent[SCTP_PR_INDEX(PRIO)]++;
++		streamout->ext->abandoned_sent[SCTP_PR_INDEX(PRIO)]++;
+ 
+ 		if (queue != &asoc->outqueue.retransmit &&
+ 		    !chk->tsn_gap_acked) {
+@@ -405,7 +405,7 @@ static int sctp_prsctp_prune_unsent(struct sctp_association *asoc,
+ 			struct sctp_stream_out *streamout =
+ 				&asoc->stream.out[chk->sinfo.sinfo_stream];
+ 
+-			streamout->abandoned_unsent[SCTP_PR_INDEX(PRIO)]++;
++			streamout->ext->abandoned_unsent[SCTP_PR_INDEX(PRIO)]++;
+ 		}
+ 
+ 		msg_len -= SCTP_DATA_SNDSIZE(chk) +
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index 790094311143..2fc4403493e3 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -1964,6 +1964,13 @@ static int sctp_sendmsg(struct sock *sk, struct msghdr *msg, size_t msg_len)
+ 		goto out_free;
+ 	}
+ 
++	/* Allocate sctp_stream_out_ext if not already done */
++	if (unlikely(!asoc->stream.out[sinfo->sinfo_stream].ext)) {
++		err = sctp_stream_init_ext(&asoc->stream, sinfo->sinfo_stream);
++		if (err)
++			goto out_free;
++	}
++
+ 	if (sctp_wspace(asoc) < msg_len)
+ 		sctp_prsctp_prune(asoc, sinfo, msg_len - sctp_wspace(asoc));
+ 
+@@ -6722,7 +6729,7 @@ static int sctp_getsockopt_pr_streamstatus(struct sock *sk, int len,
+ 					   char __user *optval,
+ 					   int __user *optlen)
+ {
+-	struct sctp_stream_out *streamout;
++	struct sctp_stream_out_ext *streamoute;
+ 	struct sctp_association *asoc;
+ 	struct sctp_prstatus params;
+ 	int retval = -EINVAL;
+@@ -6745,21 +6752,29 @@ static int sctp_getsockopt_pr_streamstatus(struct sock *sk, int len,
+ 	if (!asoc || params.sprstat_sid >= asoc->stream.outcnt)
+ 		goto out;
+ 
+-	streamout = &asoc->stream.out[params.sprstat_sid];
++	streamoute = asoc->stream.out[params.sprstat_sid].ext;
++	if (!streamoute) {
++		/* Not allocated yet, means all stats are 0 */
++		params.sprstat_abandoned_unsent = 0;
++		params.sprstat_abandoned_sent = 0;
++		retval = 0;
++		goto out;
++	}
++
+ 	if (policy == SCTP_PR_SCTP_NONE) {
+ 		params.sprstat_abandoned_unsent = 0;
+ 		params.sprstat_abandoned_sent = 0;
+ 		for (policy = 0; policy <= SCTP_PR_INDEX(MAX); policy++) {
+ 			params.sprstat_abandoned_unsent +=
+-				streamout->abandoned_unsent[policy];
++				streamoute->abandoned_unsent[policy];
+ 			params.sprstat_abandoned_sent +=
+-				streamout->abandoned_sent[policy];
++				streamoute->abandoned_sent[policy];
+ 		}
+ 	} else {
+ 		params.sprstat_abandoned_unsent =
+-			streamout->abandoned_unsent[__SCTP_PR_INDEX(policy)];
++			streamoute->abandoned_unsent[__SCTP_PR_INDEX(policy)];
+ 		params.sprstat_abandoned_sent =
+-			streamout->abandoned_sent[__SCTP_PR_INDEX(policy)];
++			streamoute->abandoned_sent[__SCTP_PR_INDEX(policy)];
+ 	}
+ 
+ 	if (put_user(len, optlen) || copy_to_user(optval, &params, len)) {
+diff --git a/net/sctp/stream.c b/net/sctp/stream.c
+index 9b78a3e7d6d5..dfa8e2bb97b9 100644
+--- a/net/sctp/stream.c
++++ b/net/sctp/stream.c
+@@ -121,8 +121,24 @@ int sctp_stream_init(struct sctp_stream *stream, __u16 outcnt, __u16 incnt,
+ 	return 0;
+ }
+ 
++int sctp_stream_init_ext(struct sctp_stream *stream, __u16 sid)
++{
++	struct sctp_stream_out_ext *soute;
++
++	soute = kzalloc(sizeof(*soute), GFP_KERNEL);
++	if (!soute)
++		return -ENOMEM;
++	stream->out[sid].ext = soute;
++
++	return 0;
++}
++
+ void sctp_stream_free(struct sctp_stream *stream)
+ {
++	int i;
++
++	for (i = 0; i < stream->outcnt; i++)
++		kfree(stream->out[i].ext);
+ 	kfree(stream->out);
+ 	kfree(stream->in);
+ }
+-- 
+2.18.1
+

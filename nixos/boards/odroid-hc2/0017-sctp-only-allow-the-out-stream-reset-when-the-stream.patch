@@ -1,0 +1,90 @@
+From cf0a34aa3e552dcde2fa37af62c7ccbb265b9e33 Mon Sep 17 00:00:00 2001
+From: Xin Long <lucien.xin@gmail.com>
+Date: Sat, 25 Nov 2017 21:05:33 +0800
+Subject: [PATCH 17/17] sctp: only allow the out stream reset when the stream
+ outq is empty
+
+Now the out stream reset in sctp stream reconf could be done even if
+the stream outq is not empty. It means that users can not be sure
+since which msg the new ssn will be used.
+
+To make this more synchronous, it shouldn't allow to do out stream
+reset until these chunks in unsent outq all are sent out.
+
+This patch checks the corresponding stream outqs when sending and
+processing the request . If any of them has unsent chunks in outq,
+it will return -EAGAIN instead or send SCTP_STRRESET_IN_PROGRESS
+back to the sender.
+
+Fixes: 7f9d68ac944e ("sctp: implement sender-side procedures for SSN Reset Request Parameter")
+Suggested-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/sctp/stream.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/net/sctp/stream.c b/net/sctp/stream.c
+index fa7957933fed..a20145b3a949 100644
+--- a/net/sctp/stream.c
++++ b/net/sctp/stream.c
+@@ -254,6 +254,30 @@ static int sctp_send_reconf(struct sctp_association *asoc,
+ 	return retval;
+ }
+ 
++static bool sctp_stream_outq_is_empty(struct sctp_stream *stream,
++				      __u16 str_nums, __be16 *str_list)
++{
++	struct sctp_association *asoc;
++	__u16 i;
++
++	asoc = container_of(stream, struct sctp_association, stream);
++	if (!asoc->outqueue.out_qlen)
++		return true;
++
++	if (!str_nums)
++		return false;
++
++	for (i = 0; i < str_nums; i++) {
++		__u16 sid = ntohs(str_list[i]);
++
++		if (stream->out[sid].ext &&
++		    !list_empty(&stream->out[sid].ext->outq))
++			return false;
++	}
++
++	return true;
++}
++
+ int sctp_send_reset_streams(struct sctp_association *asoc,
+ 			    struct sctp_reset_streams *params)
+ {
+@@ -317,6 +341,11 @@ int sctp_send_reset_streams(struct sctp_association *asoc,
+ 	for (i = 0; i < str_nums; i++)
+ 		nstr_list[i] = htons(str_list[i]);
+ 
++	if (out && !sctp_stream_outq_is_empty(stream, str_nums, nstr_list)) {
++		retval = -EAGAIN;
++		goto out;
++	}
++
+ 	chunk = sctp_make_strreset_req(asoc, str_nums, nstr_list, out, in);
+ 
+ 	kfree(nstr_list);
+@@ -639,6 +668,12 @@ struct sctp_chunk *sctp_process_strreset_inreq(
+ 		}
+ 	}
+ 
++	if (!sctp_stream_outq_is_empty(stream, nums, str_p)) {
++		result = SCTP_STRRESET_IN_PROGRESS;
++		asoc->strreset_inseq--;
++		goto err;
++	}
++
+ 	chunk = sctp_make_strreset_req(asoc, nums, str_p, 1, 0);
+ 	if (!chunk)
+ 		goto out;
+-- 
+2.18.1
+
