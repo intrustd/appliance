@@ -1,13 +1,9 @@
-{ platform ? "odroid-hc2" }: # nixpkgs ? }:
+let defaultPkgs = ./nixpkgs;
 
-let pkgRev = "8895ae2a62c72c63892a3ad4d38bf2a621ecacac";
+in { platform ? "odroid-hc2", nixpkgs-path ? defaultPkgs, pkgRev ? "ci" }:
 
-    nixpkgs = import ./nixpkgs;
+let system = builtins.getAttr platform (import ./systems.nix);
 
-    system = builtins.getAttr platform (import ./systems.nix);
-    ourPkgs = nixpkgs {};
-    crossPkgs = (nixpkgs { crossSystem = system;
-                           config.packageOverrides = overrides; });
     overrides = pkgs: rec {
       libgpgerror = pkgs.libgpgerror.overrideDerivation (oldAttrs: {
         postPatch = ''
@@ -29,25 +25,22 @@ let pkgRev = "8895ae2a62c72c63892a3ad4d38bf2a621ecacac";
       system.nixos.revision = pkgRev;
     };
 
-    evalConfig = import ./nixpkgs/nixos/lib/eval-config.nix;
+    evalConfig = import (nixpkgs-path + /nixos/lib/eval-config.nix);
     systemConfig = { module, system, ... }:
       (evalConfig {
          inherit system;
          modules = [ module versionModule ];
        });
     makeSdImage = args:
-      with import ./nixpkgs { inherit system; };
+      with import nixpkgs-path { inherit system; };
        system.config.system.build.sdImage;
 
 in rec {
-  pkgs = crossPkgs;
-  stdenv = crossPkgs.stdenv;
-
-  nixos = import ./nixpkgs/nixos/release.nix { inherit nixpkgs; };
+  nixos = import (nixpkgs-path + /nixos/release.nix) { nixpkgs = import nixpkgs-path; };
 
   systemImg = systemConfig {
      module = { config, ... }: {
-       imports = [ ./nixpkgs/nixos/modules/installer/cd-dvd/sd-image.nix
+       imports = [ (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix)
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
@@ -55,9 +48,10 @@ in rec {
        config = {
          kite = { inherit platform; };
          nixpkgs.crossSystem = system;
-         nixpkgs.overlays = [ (pkgs.lib.const overrides) ];
-         nixpkgs.pkgs = (nixpkgs { crossSystem = config.nixpkgs.crossSystem;
-                                   overlays = config.nixpkgs.overlays; });
+         nixpkgs.overlays = [ (super: overrides) ];
+         nixpkgs.pkgs = (import nixpkgs-path {
+          crossSystem = config.nixpkgs.crossSystem;
+          overlays = config.nixpkgs.overlays; });
        };
      };
      system = system.config;
@@ -71,7 +65,7 @@ in rec {
   config= systemImg.config;
   baseSystem = systemImg.config.system.build.toplevel;
 
-  diskImage = import ./nixpkgs/nixos/lib/make-disk-image.nix {
+  diskImage = import (nixpkgs-path + /nixos/lib/make-disk-image.nix) {
     lib = config.nixpkgs.pkgs.lib;
     pkgs = import <nixpkgs> {};
     inherit config;
@@ -79,9 +73,4 @@ in rec {
     diskSize = "2048";
     label = "NIXOS_SD";
   };
-
-  gdb = pkgs.buildPackages.gdb;
-  ebtables = pkgs.ebtables;
-
-  pycffi = pkgs.python36.withPackages (ps: with ps; [ cffi ]);
 }
