@@ -2,7 +2,7 @@
 
 let pkgs = import <nixpkgs> {};
 in {
-  jobsets = {
+  jobsets =
     let spec = {
           odroid-hc2 = {
             enabled = 1;
@@ -23,5 +23,4 @@ in {
         };
     in pkgs.writeText "spec.json"
          (builtins.toJSON spec);
-  };
 }
