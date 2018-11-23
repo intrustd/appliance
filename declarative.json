@@ -1,0 +1,16 @@
+{
+    "enabled": 1,
+    "hidden": false,
+    "description": "js",
+    "nixexprinput": "src",
+    "nixexprpath": "default.nix",
+    "checkinterval": 300,
+    "schedulingshares": 100,
+    "enableemail": false,
+    "emailoverride": "",
+    "keepnr": 3,
+    "inputs": {
+        "src": { "type": "git", "value": "git://github.com/tathougies/kite-system.git", "emailresponsible": true },
+        "nixpkgs": { "type": "git", "value": "git://github.com/NixOS/nixpkgs.git release-18.09", "emailresponsible": false }
+    }
+}
