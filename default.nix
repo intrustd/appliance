@@ -17,7 +17,7 @@ in {
             keepnr = 3;
             inputs = {
               nixpkgs = { type = "git"; value = "git://github.com/kitecomputing/nixpkgs.git"; emailresponsible = true; };
-              src = { type = "git"; value = "git://github.com/kitecomputing/kite-system.git"; emailresponsible = true; };
+              src = { type = "git"; value = "git://github.com/kitecomputing/kite-system.git kite"; emailresponsible = true; };
             };
           };
         };
