@@ -8,12 +8,7 @@ let buildBundle = module:
         pure-build = true;
       };
 
-   admin-app = pkgs.fetchFromGitHub {
-     owner = "kitecomputing";
-     repo = "admin";
-     rev = "8ebf4609518925c5fb73fb33a94c022a419a6118";
-     sha256 = "17gzigkyqxfzv8vcqjf8dlwzz6rf4qklji4aq8yjngx11ms4vlkf";
-   };
+   admin-app = pkgs.kite-static.src;
 in
 {
   services.kite.applications."kite+app://flywithkite.com/admin" =
