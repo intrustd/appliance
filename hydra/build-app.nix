@@ -3,4 +3,4 @@ import <kite/build-bundle.nix> rec {
   system = pkgs.stdenv.targetPlatform.system;
   kite-app-module = <src/kite.nix>;
   pure-build = true;
-};
+}
