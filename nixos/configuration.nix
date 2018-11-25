@@ -1,7 +1,7 @@
 {pkgs, ...}:
 
 {
-  imports = [ ./networking.nix ./ssh.nix ./kite.nix ./kite-apps.nix ];
+  imports = [ ./networking.nix ./ssh.nix ./kite.nix ./kite-apps.nix ./updates.nix ];
 
   nixpkgs.overlays = [
     (self: super: {

@@ -4,32 +4,11 @@ in { platform ? "odroid-hc2", nixpkgs-path ? defaultPkgs, pkgRev ? "ci" }:
 
 let system = builtins.getAttr platform (import ./systems.nix);
 
-    overrides = pkgs: rec {
-      libgpgerror = pkgs.libgpgerror.overrideDerivation (oldAttrs: {
-        postPatch = ''
-          echo "Coping file"
-          cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h src/syscfg/lock-obj-pub.arm-unknown-linux-musleabihf.h
-          cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h src/syscfg/lock-obj-pub.linux-musleabihf.h
-        '';
-      });
-      xorg = pkgs.xorg.overrideScope' (selfXorg: superXorg: {
-        libpciaccess = superXorg.libpciaccess.overrideDerivation (oldAttrs: {
-           patches = if builtins.hasAttr "patches" oldAttrs then oldAttrs.patches else [] ++
-             pkgs.stdenv.lib.optional pkgs.targetPlatform.isAarch32 ./pkgs/libpciaccess/0001-musl-arm.patch;
-        });
-      });
-    };
-
-    versionModule = {
-      system.nixos.versionSuffix = "kite";
-      system.nixos.revision = pkgRev;
-    };
-
     evalConfig = import (nixpkgs-path + /nixos/lib/eval-config.nix);
     systemConfig = { module, system, ... }:
       (evalConfig {
          inherit system;
-         modules = [ module versionModule ];
+         modules = [ module ];
        });
     makeSdImage = args:
       with import nixpkgs-path { inherit system; };
@@ -48,10 +27,12 @@ in rec {
        config = {
          kite = { inherit platform; };
          nixpkgs.crossSystem = system;
-         nixpkgs.overlays = [ (super: overrides) ];
          nixpkgs.pkgs = (import nixpkgs-path {
           crossSystem = config.nixpkgs.crossSystem;
           overlays = config.nixpkgs.overlays; });
+
+         system.nixos.versionSuffix = "kite";
+         system.nixos.revision = pkgRev;
        };
      };
      system = system.config;
@@ -61,6 +42,8 @@ in rec {
   initialRamdisk = systemImg.config.system.build.initialRamdisk;
 
   kernel = systemImg.config.boot.kernelPackages.kernel;
+
+  pkgs =  config.nixpkgs.pkgs;
 
   config= systemImg.config;
   baseSystem = systemImg.config.system.build.toplevel;
