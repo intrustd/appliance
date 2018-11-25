@@ -3,24 +3,24 @@
      config = "x86_64-unknown-linux-musl";
    };
 
-   qemu-arm = {
-     config = "armv7l-unknown-linux-musleabihf";
-     platform = {
-       name = "arm7l-hf-multiplatform";
-       kernelMajor = "2.6";
-       kernelBaseConfig = "vexpress_defconfig";
-       kernelArch = "arm";
-       kernelDTB = true;
-       kernelAutoModules = true;
-       kernelPreferBuiltin = true;
-       kernelTarget = "uImage";
-     };
-
-     gcc = {
-       arch = "armv7-a";
-       fpu = "neon-vfpv4";
-     };
-   };
+#   qemu-arm = {
+#     config = "armv7l-unknown-linux-musleabihf";
+#     platform = {
+#       name = "arm7l-hf-multiplatform";
+#       kernelMajor = "2.6";
+#       kernelBaseConfig = "vexpress_defconfig";
+#       kernelArch = "arm";
+#       kernelDTB = true;
+#       kernelAutoModules = true;
+#       kernelPreferBuiltin = true;
+#       kernelTarget = "uImage";
+#     };
+#
+#     gcc = {
+#       arch = "armv7-a";
+#       fpu = "neon-vfpv4";
+#     };
+#   };
 
    odroid-hc2 = {
      config = "armv7l-unknown-linux-musleabihf";
