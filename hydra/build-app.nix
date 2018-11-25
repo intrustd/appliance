@@ -1,4 +1,4 @@
-import <kite/build-bundle.nix> rec {
+import <kite/nix/build-bundle.nix> rec {
   pkgs = import <nixpkgs> {};
   system = pkgs.stdenv.targetPlatform.system;
   kite-app-module = <src/kite.nix>;
