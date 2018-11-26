@@ -3,13 +3,14 @@
 let pkgs = import <nixpkgs> {};
 in {
   jobsets =
-    let spec = {
-          odroid-hc2 = {
+    let mkHydraSpec = platform: {
+          name = platform;
+          value = {
             enabled = 1;
             hidden = false;
             description = "";
             nixexprinput = "src";
-            nixexprpath = "hydra/odroid-hc2.nix";
+            nixexprpath = "hydra/${platform}.nix";
             checkinterval = 300;
             schedulingshares = 100;
             enableemail = true;
@@ -21,6 +22,10 @@ in {
             };
           };
         };
+
+        hydraSpec = platforms: builtins.listToAttrs (map mkHydraSpec platforms);
+        spec = hydraSpec [ "odroid-hc2" "qemu-x86_64" ];
+
     in pkgs.writeText "spec.json"
          (builtins.toJSON spec);
 }
