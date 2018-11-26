@@ -1,6 +1,7 @@
 let defaultPkgs = ./nixpkgs;
 
-in { platform ? "odroid-hc2", nixpkgs-path ? defaultPkgs, pkgRev ? "ci" }:
+in { platform ? "odroid-hc2", nixpkgs-path ? defaultPkgs, pkgRev ? "ci",
+     hydraJobUrl ? null }:
 
 let system = builtins.getAttr platform (import ./systems.nix);
 
@@ -25,13 +26,14 @@ in rec {
                    ./nixos/configuration.nix
                    ./nixos/profiles/minimal.nix ];
        config = {
-         kite = { inherit platform; };
+         kite = { inherit platform;
+                  updates.hydraJobUrl = hydraJobUrl; };
          nixpkgs.crossSystem = system;
          nixpkgs.pkgs = (import nixpkgs-path {
           crossSystem = config.nixpkgs.crossSystem;
           overlays = config.nixpkgs.overlays; });
 
-         system.nixos.versionSuffix = "kite";
+         system.nixos.versionSuffix = "-kite";
          system.nixos.revision = pkgRev;
        };
      };

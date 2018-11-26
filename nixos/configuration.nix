@@ -1,4 +1,4 @@
-{pkgs, ...}:
+{lib, pkgs, config, ...}:
 
 {
   imports = [ ./networking.nix ./ssh.nix ./kite.nix ./kite-apps.nix ./updates.nix ];
@@ -36,4 +36,16 @@
 
   # TODO  services.atd.enable = true;
   # TODO services.cron.enable = true;
+
+  environment.etc."os-release".text = lib.mkOverride 10 ''
+    NAME=KiteOS
+    ID=kite
+    VERSION="${config.system.nixos.version} (${config.system.nixos.codeName})"
+    VERSION_CODENAME=${lib.toLower config.system.nixos.codeName}
+    VERSION_ID="${config.system.nixos.version}"
+    PRETTY_NAME="KiteOS ${config.system.nixos.version} (${config.system.nixos.codeName})"
+    HOME_URL="https://flywithkite.com/"
+    SUPPORT_URL="https://flywithkite.com/support"
+    BUG_REPORT_URL="https://github.com/kitecomputing/kite-system/issues"
+  '';
 }

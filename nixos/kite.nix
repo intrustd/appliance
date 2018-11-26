@@ -182,7 +182,7 @@ in {
            if [ ! -f ${stateDir}/key.pem ]; then
              echo "Generating Kite Private Key"
              ${lib.getBin pkgs.openssl_1_1}/bin/openssl ecparam -out "${stateDir}/key.ecparam.pem" -name prime256v1
-	     ${lib.getBin pkgs.openssl_1_1}/bin/openssl genpkey -paramfile "${stateDir}/key.ecparam.pem" -out "${stateDir}/key.pem"
+             ${lib.getBin pkgs.openssl_1_1}/bin/openssl genpkey -paramfile "${stateDir}/key.ecparam.pem" -out "${stateDir}/key.pem"
            fi
 
            chown kite:kite ${stateDir}/key.pem
@@ -193,13 +193,13 @@ in {
            for i in ${trustedKeysDir}/*; do
              ln -sf $i ${stateDir}/trusted_keys/$(basename $i)
            done
-	   ${lib.getBin pkgs.openssl_1_1}/bin/openssl ec -in ${stateDir}/key.pem -pubout -out ${stateDir}/trusted_keys/built_here_key.pem
+           ${lib.getBin pkgs.openssl_1_1}/bin/openssl ec -in ${stateDir}/key.pem -pubout -out ${stateDir}/trusted_keys/built_here_key.pem
            chown -R kite:kite ${stateDir}/trusted_keys
 
            chown kite:kite ${stateDir}
 
            rm -f ${stateDir}/admin.sock
-           ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/flywithkite.com/admin/admin.sock" "${stateDir}/admin.sock"
+           ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.flywithkite.com/admin.sock" "${stateDir}/admin.sock"
          '';
          deps = [];
        };
