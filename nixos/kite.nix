@@ -159,7 +159,8 @@ in {
              exec ${config.services.kite.package.applianced}/bin/applianced \
                --ebroute ${pkgs.ebtables}/bin/ebtables \
                --iproute ${pkgs.iproute}/bin/ip \
-               -c ${stateDir}
+               -c ${stateDir} \
+               -H ${pkgs.stdenv.hostPlatform.config}
            '';
          };
 
