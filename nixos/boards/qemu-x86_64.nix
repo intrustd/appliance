@@ -28,13 +28,18 @@ with lib;
       ttyS0 = { type = "vt102";  };
     };
 
-    boot.loader.grub.enable = false;
     boot.kernelModules = [ "sctp" "tun" "ebtables" "br_netfilter" ];
-#    boot.loader.grub.device = "/dev/xvda";
-#    boot.loader.grub.efiSupport = false;
-#    boot.loader.grub.version = 1;
 
-    system.build.installBootloader = "echo 'Kite: No bootloader for qemu targets'; true";
+    boot.loader.grub.enable = false;
+    # boot.loader.grub.device = "/dev/sda";
+    # boot.loader.grub.efiSupport = false;
+    # boot.loader.grub.version = 1;
+
+#    boot.loader.generic-extlinux-compatible.enable = true;
+#    boot.loader.generic-extlinux-compatible.configurationLimit = 3;
+#
+#    environment.systemPackages = [ pkgs.syslinux ];
+
     boot.kernelPackages = pkgs.linuxPackages_4_18;
   };
 }
