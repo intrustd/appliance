@@ -3,7 +3,8 @@
 let buildBundle = module:
       import (pkgs.kite.nix + /build-bundle.nix) {
         inherit pkgs;
-	system = pkgs.stdenv.hostPlatform.system;
+        systems = builtins.listToAttrs [ { name = pkgs.hostPlatform.config;
+                                           value = pkgs; } ];
 	kite-app-module = module + /kite.nix;
         pure-build = true;
       };
