@@ -8,8 +8,8 @@ stdenv.mkDerivation rec {
    src = fetchFromGitHub {
      owner = "kitecomputing";
      repo = "kite";
-     rev = "1c6951e7a867954935b905084b62b3e1e5bd02ab";
-     sha256 = "12bh1hzv4zd5lzjxpifkclfq3h74c8hsk5ccp1rgc3ns1s2kj1lm";
+     rev = "b206eeb41f6498ae7a2bb1f7edcd82b9f8693d31";
+     sha256 = "184c65aqcyg38ixrqc5yxgpkaymwkyvjgypfv3i9zm53k3jd7jd9";
    };
 
    nativeBuildInputs = [ cmake pkgconfig ];
