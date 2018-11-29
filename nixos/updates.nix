@@ -31,6 +31,10 @@
       BOOTED_KERNEL=${config.boot.kernelPackages.kernel}
       BOOTED_INITRD=${config.system.build.initialRamdisk}
       '';
+
+      environment.etc."kite/caches".text = ''
+         https://hydra.flywithkite.com/cache cache.flywithkite.com-1:7JJMfk9Vl5tetCyL8TnGSmo6IMvJypOlLv4Y7huDvDQ=
+      '';
     }
 
     (lib.mkIf (config.kite.updates.hydraJobUrl != null) {
