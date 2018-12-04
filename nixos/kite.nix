@@ -118,6 +118,7 @@ in {
       nixpkgs.overlays = [
         (self: super: rec {
           lksctp-tools = self.callPackage ../pkgs/lksctp-tools {};
+          nix-fetch = self.callPackage ../pkgs/nix-fetch {};
           kite-static = self.callPackage ../pkgs/kite-static { };
           kite = self.callPackage ../pkgs/kite { curl = kite-curl; };
           kite-curl = super.curl.override {
@@ -132,26 +133,42 @@ in {
     }
 
     (mkIf config.services.kite.enable {
-       users.users = singleton {
-         name = "kite";
-         uid = config.ids.uids.kite;
-         description = "`kite` applianced separation user";
-         home = "/var/empty";
-       };
+       users.users = [
+         {
+           name = "kite";
+           uid = config.ids.uids.kite;
+           description = "`kite` applianced separation user";
+           home = "/var/empty";
+         }
 
-       users.groups = singleton {
-         name = "kite";
-         gid = config.ids.gids.kite;
-       };
+         {
+           name = "kiteuser";
+           uid = config.ids.uids.kiteuser;
+           description = "Unprivileged kite user";
+           home = "/var/empty";
+         }
+       ];
+
+       users.groups = [
+         {
+           name = "kite";
+           gid = config.ids.gids.kite;
+         }
+
+         {
+           name = "kiteuser";
+           gid = config.ids.gids.kiteuser;
+         }
+       ];
 
        runit.services = {
          kite = {
            logging = { enable = true; redirectStderr = true; };
            requires = [ "network" "nix-daemon" ];
-	   path = [ config.nix.package.out ];
+	   path = [ config.nix.package.out pkgs.nix-fetch ];
+
            environment.KITEPATH = "${config.services.kite.package.applianced}/bin";
-           user = "kite";
-           groups = [ "kite" ];
+
            script = ''
              mkdir -p ${stateDir}
 
@@ -160,7 +177,9 @@ in {
                --ebroute ${pkgs.ebtables}/bin/ebtables \
                --iproute ${pkgs.iproute}/bin/ip \
                -c ${stateDir} \
-               -H ${pkgs.stdenv.hostPlatform.config}
+               -H ${pkgs.stdenv.hostPlatform.config} \
+               --user kite --group kite \
+               --kite-user kiteuser --kite-group kiteuser
            '';
          };
 

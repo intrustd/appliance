@@ -8,7 +8,7 @@ stdenv.mkDerivation rec {
    src = fetchFromGitHub {
      owner = "kitecomputing";
      repo = "kite";
-     rev = "0664f8a68f6769c26e3515469062ed7245a34c45";
+     rev = "d3d9989250c857b3a9b6286e7ebe97701de9177b";
      sha256 = "1anypfg79lkpldxdi63v9xvax9f1g1wzyd8vlswv6zahq8k1jv5p";
    };
 

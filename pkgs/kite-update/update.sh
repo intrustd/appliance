@@ -32,6 +32,7 @@ latest_system=$(@curl@ "$HYDRA_JOB_URL/latest" -H 'Accept: application/json' -Ls
 
 echo "Upgrading to $(basename $latest_system)..."
 
+# nix-fetch $latest_system
 nix-store --realise $latest_system
 
 if [[ "$SWITCH" -eq 0 ]]; then
