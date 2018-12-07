@@ -13,6 +13,14 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 80 ];
+    extraCommands = "iptables -I INPUT 1 -i kitelink -j ACCEPT";
+  };
+
+  networking.nat = {
+    enable = true;
+    internalInterfaces = [ "kitelink" ];
+    internalIPs = [ "10.0.0.0/8" ];
+    externalInterface = "eth0";
   };
 
   # enable unbound
@@ -20,6 +28,9 @@
   services.unbound = {
     enable = true;
     remoteControl.enable = true;
+
+    interfaces = [ "127.0.0.1" "::1" "10.254.254.254" ];
+    allowedAccess = [ "127.0.0.0/24" "10.0.0.0/8" ];
 
     forwardAddresses = [
       # Quad 9

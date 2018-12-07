@@ -1,5 +1,5 @@
 { pkgs, stdenv, cmake, uriparser, lksctp-tools, curl, fetchFromGitHub
-, pkgconfig, zlib, openssl_1_1, uthash, check, enableVerboseWebrtc ? false }:
+, pkgconfig, zlib, openssl_1_1, uthash, check, enableVerboseWebrtc ? false, enableDebug ? false }:
 
 stdenv.mkDerivation rec {
    name = "kite-${version}";
@@ -8,8 +8,8 @@ stdenv.mkDerivation rec {
    src = fetchFromGitHub {
      owner = "kitecomputing";
      repo = "kite";
-     rev = "d3d9989250c857b3a9b6286e7ebe97701de9177b";
-     sha256 = "1anypfg79lkpldxdi63v9xvax9f1g1wzyd8vlswv6zahq8k1jv5p";
+     rev = "19b9e79f47b35d68f2bdadf1036d332f32e2ca19";
+     sha256 = "02rlf303mphv2klg8x9n9ckdd0myf68i8smkikggkdxzw5j8nxxm";
    };
 
    nativeBuildInputs = [ cmake pkgconfig ];
@@ -21,7 +21,9 @@ stdenv.mkDerivation rec {
 #     cmake -DCMAKE_BUILD_TYPE=Release .
 #   '';
 
-   cmakeFlags = stdenv.lib.optionalString enableVerboseWebrtc "-DWEBRTC_DEBUG=ON";
+   cmakeFlags = stdenv.lib.concatStringsSep " " (stdenv.lib.optional enableVerboseWebrtc "-DWEBRTC_DEBUG=ON" ++
+                                                 stdenv.lib.optional enableDebug "-DCMAKE_BUILD_TYPE=Debug");
+   dontStrip=true;
 
    installPhase = ''
      mkdir -p $flockd/bin

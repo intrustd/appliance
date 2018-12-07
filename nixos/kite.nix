@@ -6,15 +6,39 @@ let stateDir = "/var/kite";
 
     installAppScript = name: pkg: ''
       echo "Installing ${name}..."
-
-      cp "${pkg}" /run/manifest.json
-      ${lib.getBin pkgs.openssl_1_1}/bin/openssl dgst -sha256 -sign ${stateDir}/key.pem /run/manifest.json | ${lib.getBin pkgs.openssl_1_1}/bin/openssl base64 -out /run/manifest.json.sign
-
-      ${config.services.kite.package.appliancectl}/bin/appliancectl register-app -f file:///run/manifest.json
-
-      rm /run/manifest.json
-      rm /run/manifest.json.sign
+      installApp "${name}" "${pkg}"
     '';
+
+    installAppFn = ''
+      doInstallApp () {
+        local line
+        local app
+        while read -r line || [ -n "$line" ]; do
+          app=$(echo "$line" | ${lib.getBin pkgs.gawk}/bin/gawk -F ' ' '{ print $1 }')
+          if [ x"$app" == x"$1" ]; then
+            echo "$1 $2"
+          else
+            echo "$line"
+          fi
+        done
+      }
+
+      installApp () {
+        local mf_digest=$(cat "$2" | ${lib.getBin pkgs.openssl_1_1}/bin/openssl dgst -sha256 | ${lib.getBin pkgs.gawk}/bin/gawk '{print $2}')
+
+        cp "$2" "${stateDir}/manifests/$mf_digest"
+        ${lib.getBin pkgs.openssl_1_1}/bin/openssl dgst -sha256 -sign ${stateDir}/key.pem "$2" | ${lib.getBin pkgs.openssl_1_1}/bin/openssl base64 -out "${stateDir}/manifests/$mf_digest.sign"
+
+        if [ -e "${stateDir}/apps" ]; then
+          cat "${stateDir}/apps" | doInstallApp "$1" "$mf_digest" > "${stateDir}/.apps.tmp"
+        else
+          echo "$1 $mf_digest" > "${stateDir}/.apps.tmp"
+        fi
+
+        mv "${stateDir}/.apps.tmp" "${stateDir}/apps"
+      }
+    '';
+
 
     flockSubmoduleOpts = {
       options = {
@@ -168,30 +192,27 @@ in {
 	   path = [ config.nix.package.out pkgs.nix-fetch ];
 
            environment.KITEPATH = "${config.services.kite.package.applianced}/bin";
+           environment.HOME = "/var/kite";
 
            script = ''
+             set -e
              mkdir -p ${stateDir}
 
 	     cd ${stateDir}
+
+             ${installAppFn}
+
+             # Install static apps
+             ${concatStringsSep "\n" (mapAttrsToList installAppScript config.services.kite.applications)}
+
              exec ${config.services.kite.package.applianced}/bin/applianced \
                --ebroute ${pkgs.ebtables}/bin/ebtables \
                --iproute ${pkgs.iproute}/bin/ip \
                -c ${stateDir} \
                -H ${pkgs.stdenv.hostPlatform.config} \
                --user kite --group kite \
-               --kite-user kiteuser --kite-group kiteuser
-           '';
-         };
-
-         kite-install = {
-           logging = { enable = true; redirectStderr = true; };
-           requires = [ "kite" "nix-daemon" ];
-           environment.KITE_APPLIANCE_DIR = "${stateDir}";
-           oneshot = true;
-           script = ''
-             ${pkgs.coreutils}/bin/sleep 4
-             echo "Installing apps"
-             ${concatStringsSep "\n" (mapAttrsToList installAppScript config.services.kite.applications)}
+               --kite-user kiteuser --kite-group kiteuser \
+               --resolv-conf ${pkgs.writeText "resolv.conf" "nameserver 10.254.254.254\n"}
            '';
          };
        };
@@ -223,6 +244,8 @@ in {
          '';
          deps = [];
        };
+
+       nix.trustedUsers = [ "kite" ];
      })
   ];
 }

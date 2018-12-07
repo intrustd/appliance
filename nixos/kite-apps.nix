@@ -11,6 +11,6 @@ let buildBundle = module:
    admin-app = pkgs.kite-static.src;
 in
 {
-  services.kite.applications."kite+app://flywithkite.com/admin" =
+  services.kite.applications."admin.flywithkite.com" =
     buildBundle admin-app;
 }
