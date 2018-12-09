@@ -78,3 +78,4 @@ case "$DIRECTION" in
         fi
         ;;
 esac
+fi
