@@ -50,6 +50,8 @@
     nix = super.nix.override { withAWS = false; }; # AWS is needed to write. We don't need that
 
     lighttpd = super.lighttpd.override { enableWebDAV = false; };
+
+    libwebp = super.libwebp.override { gifSupport = false; giflib = null; };
 #    systemd = super.systemd.override {
 #      withSelinux = false;
 #      enableHibernate = false;
