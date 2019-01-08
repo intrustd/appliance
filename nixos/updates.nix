@@ -1,6 +1,10 @@
 { config, pkgs, lib, ... }:
 
-{
+let nixGcScript = pkgs.writeScript "nix-gc" ''
+      exec ${config.nix.package.out}/bin/nix-collect-garbage
+    '';
+
+in {
   options = with lib; {
     kite.updates.hydraJobUrl = mkOption {
       type = types.nullOr types.string;
@@ -35,6 +39,12 @@
       environment.etc."kite/caches".text = ''
          https://hydra.flywithkite.com/cache cache.flywithkite.com-1:7JJMfk9Vl5tetCyL8TnGSmo6IMvJypOlLv4Y7huDvDQ=
       '';
+
+      services.fcron.enable = true;
+      services.fcron.systab = ''
+      %hourly,mailto(kite),random(true),erroronlymail(true) * ${nixGcScript}
+      '';
+
     }
 
     (lib.mkIf (config.kite.updates.hydraJobUrl != null) {
