@@ -2,7 +2,7 @@
 
 with lib;
 
-let stateDir = "/var/kite";
+let stateDir = config.services.kite.stateDir;
 
     installAppScript = name: pkg: ''
       echo "Installing ${name}..."
@@ -101,6 +101,14 @@ in {
         default = true;
       };
 
+      stateDir = mkOption {
+        type = types.string;
+        description = ''
+          Path to kite state dir
+        '';
+        default = "/var/kite";
+      };
+
       package = mkOption {
         type = types.package;
         description = ''
@@ -192,12 +200,12 @@ in {
 	   path = [ config.nix.package.out pkgs.nix-fetch ];
 
            environment.KITEPATH = "${config.services.kite.package.applianced}/bin";
-           environment.HOME = "/var/kite";
+           environment.HOME = stateDir;
 
            script = ''
              set -e
-             mkdir -p ${stateDir}
 
+             mkdir -p ${stateDir}
 	     cd ${stateDir}
 
              ${installAppFn}

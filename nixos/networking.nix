@@ -1,4 +1,4 @@
-{pkgs, ...}:
+{config, pkgs, ...}:
 
 {
   networking.useDHCP = false; # Don't auto-configure network interfaces
@@ -97,7 +97,7 @@
       $HTTP["url"] =~ "^/admin/" {
         scgi.protocol = "uwsgi"
         scgi.server = (
-          "/admin" => (( "socket" => "/var/kite/admin.sock", "check-local" => "disable" ))
+          "/admin" => (( "socket" => "${config.services.kite.stateDir}/admin.sock", "check-local" => "disable" ))
         )
       }
     '';

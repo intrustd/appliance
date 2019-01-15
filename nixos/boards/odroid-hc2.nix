@@ -200,5 +200,7 @@ in {
       mountPoint = "/mnt/kite";
       noCheck = true;
     };
+
+    services.kite.stateDir = "/mnt/kite/kite";
   };
 }
