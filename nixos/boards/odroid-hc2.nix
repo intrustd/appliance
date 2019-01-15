@@ -193,5 +193,12 @@ in {
     swapDevices = [
       { device = "/dev/sda1"; }
     ];
+
+    fileSystems.kite = {
+      device = "/dev/sda2";
+      fsType = "btrfs";
+      mountPoint = "/mnt/kite";
+      noCheck = true;
+    };
   };
 }
