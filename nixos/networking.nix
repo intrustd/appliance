@@ -55,6 +55,7 @@
 
   # enable time synchronization
   services.openntpd.enable = true;
+  services.openntpd.extraOptions = "-s"; # Set time immediately on startup
 
   # enable avahi (mdns / bonjour)
   services.avahi.enable = true;
