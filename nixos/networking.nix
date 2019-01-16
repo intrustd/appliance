@@ -29,8 +29,6 @@
     enable = true;
     remoteControl.enable = true;
 
-    waitTime = 3600; # Wait up to an hour for kite to start
-
     interfaces = [ "127.0.0.1" "::1" "10.254.254.254" ];
     allowedAccess = [ "127.0.0.0/24" "10.0.0.0/8" ];
 
