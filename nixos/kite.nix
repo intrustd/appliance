@@ -4,6 +4,31 @@ with lib;
 
 let stateDir = config.services.kite.stateDir;
 
+    kiteInitScript = ''
+      mkdir -p ${stateDir}
+      if [ ! -f ${stateDir}/key.pem ]; then
+        echo "Generating Kite Private Key"
+        ${lib.getBin pkgs.openssl_1_1}/bin/openssl ecparam -out "${stateDir}/key.ecparam.pem" -name prime256v1
+        ${lib.getBin pkgs.openssl_1_1}/bin/openssl genpkey -paramfile "${stateDir}/key.ecparam.pem" -out "${stateDir}/key.pem"
+      fi
+
+      chown kite:kite ${stateDir}/key.pem
+      cp ${flocksFile} ${stateDir}/flocks
+      chown kite:kite ${stateDir}/flocks
+
+      mkdir -p ${stateDir}/trusted_keys
+      for i in ${trustedKeysDir}/*; do
+        ln -sf $i ${stateDir}/trusted_keys/$(basename $i)
+      done
+      ${lib.getBin pkgs.openssl_1_1}/bin/openssl ec -in ${stateDir}/key.pem -pubout -out ${stateDir}/trusted_keys/built_here_key.pem
+      chown -R kite:kite ${stateDir}/trusted_keys
+
+      chown kite:kite ${stateDir}
+
+      rm -f ${stateDir}/admin.sock
+      ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.flywithkite.com/admin.sock" "${stateDir}/admin.sock"
+    '';
+
     installAppScript = name: pkg: ''
       echo "Installing ${name}..."
       installApp "${name}" "${pkg}"
@@ -208,7 +233,7 @@ in {
            script = ''
              set -e
 
-             mkdir -p ${stateDir}
+             ${kiteInitScript}
 	     cd ${stateDir}
 
              ${installAppFn}
@@ -228,33 +253,10 @@ in {
          };
        };
 
-       system.activationScripts.kite = {
-         text = ''
-           mkdir -p ${stateDir}
-           if [ ! -f ${stateDir}/key.pem ]; then
-             echo "Generating Kite Private Key"
-             ${lib.getBin pkgs.openssl_1_1}/bin/openssl ecparam -out "${stateDir}/key.ecparam.pem" -name prime256v1
-             ${lib.getBin pkgs.openssl_1_1}/bin/openssl genpkey -paramfile "${stateDir}/key.ecparam.pem" -out "${stateDir}/key.pem"
-           fi
-
-           chown kite:kite ${stateDir}/key.pem
-           cp ${flocksFile} ${stateDir}/flocks
-           chown kite:kite ${stateDir}/flocks
-
-           mkdir -p ${stateDir}/trusted_keys
-           for i in ${trustedKeysDir}/*; do
-             ln -sf $i ${stateDir}/trusted_keys/$(basename $i)
-           done
-           ${lib.getBin pkgs.openssl_1_1}/bin/openssl ec -in ${stateDir}/key.pem -pubout -out ${stateDir}/trusted_keys/built_here_key.pem
-           chown -R kite:kite ${stateDir}/trusted_keys
-
-           chown kite:kite ${stateDir}
-
-           rm -f ${stateDir}/admin.sock
-           ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.flywithkite.com/admin.sock" "${stateDir}/admin.sock"
-         '';
-         deps = [];
-       };
+#       system.activationScripts.kite = {
+#         text = kiteInitScript;
+#         deps = [];
+#       };
 
        nix.trustedUsers = [ "kite" ];
      })
