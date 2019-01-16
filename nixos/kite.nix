@@ -197,8 +197,10 @@ in {
        runit.services = {
          kite = {
            logging = { enable = true; redirectStderr = true; };
-           requires = [ "network" "nix-daemon" ];
+           requires = [ "network" "nix-daemon" "mounts" ];
 	   path = [ config.nix.package.out pkgs.nix-fetch ];
+
+           waitTime = 3600; # Wait up to an hour for everything to start. This should be way more than enough
 
            environment.KITEPATH = "${config.services.kite.package.applianced}/bin";
            environment.HOME = stateDir;
