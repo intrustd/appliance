@@ -8,17 +8,17 @@
   };
   networking.dhcpcd.allowInterfaces = null;
 
-  networking.hostName = "kite";
+  networking.hostName = "intrustd";
 
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 80 ];
-    extraCommands = "iptables -I INPUT 1 -i kitelink -j ACCEPT";
+    extraCommands = "iptables -I INPUT 1 -i intrustd-link -j ACCEPT";
   };
 
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "kitelink" ];
+    internalInterfaces = [ "intrustd-link" ];
     internalIPs = [ "10.0.0.0/8" ];
     externalInterface = "eth0";
   };
@@ -64,45 +64,45 @@
   services.avahi.publish.userServices = true;
 
   services.udev.extraRules = ''
-    KERNEL=="tun", GROUP="kite", MODE="0660", OPTIONS+="static_node=net/tun"
+    KERNEL=="tun", GROUP="intrustd", MODE="0660", OPTIONS+="static_node=net/tun"
   '';
 
-  # Kite
+  # Intrsutd applianced
 
-  services.kite = {
+  services.intrustd = {
     enable = true;
 
-    flocks."flywithkite.com" = {
-      url = "kite+flock://flock.flywithkite.com:6854";
+    flocks."intrustd.com" = {
+      url = "intrustd+flock://flock.intrustd.com:6854";
       fingerprint = "3085a1e28bcb83be1571798786496aa699ec0f59d46b9d5069598db0f595b310";
     };
 
     flocks."stun".url = "stun://stun.stunprotocol.org:3478";
 
-    trustedKeys.kite.source = ./trusted-keys/kite.pem;
+    trustedKeys.intrustd.source = ./trusted-keys/intrustd.pem;
   };
 
   services.lighttpd = {
     enable = true;
 
-    document-root = pkgs.kite-static;
+    document-root = pkgs.intrustd-static;
     enableModules = [ "mod_scgi" "mod_setenv" "mod_rewrite" ];
 
     extraConfig = ''
       url.rewrite-once = ( "^/login(/)?$" => "/login.html" )
 
       setenv.add-request-header = (
-        "X-Kite-Admin-Source" => "local-network"
+        "X-Intrustd-Admin-Source" => "local-network"
       )
 
       $HTTP["url"] =~ "^/admin/" {
         scgi.protocol = "uwsgi"
         scgi.server = (
-          "/admin" => (( "socket" => "${config.services.kite.stateDir}/admin.sock", "check-local" => "disable" ))
+          "/admin" => (( "socket" => "${config.services.intrustd.stateDir}/admin.sock", "check-local" => "disable" ))
         )
       }
     '';
   };
 
-  users.users.lighttpd.extraGroups = [ "kite" ];
+  users.users.lighttpd.extraGroups = [ "intrustd" ];
 }

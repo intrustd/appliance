@@ -5,9 +5,9 @@ stdenv.mkDerivation rec {
   version = "0.0.1";
 
   src = fetchFromGitHub {
-    owner = "kitecomputing";
+    owner = "intrustd";
     repo = "nix-fetch";
-    rev = "664d32f4c19c0f8c9cf8a4f1a69370a861716554";
+    rev = "656c53a6f8773cb52b0bb3816579351463d74afc";
     sha256 = "0pcy42pxrwzbsmfs2wdlbm8rjwfz8bvc6yxmyiyqdzlpb87ghbji";
   };
 
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Advanced version of nix-copy-closure";
-    homepage = http://flywithkite.com/;
+    homepage = http://intrustd.com/;
     licenses = licenses.mit;
   };
 }

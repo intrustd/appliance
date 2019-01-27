@@ -6,7 +6,7 @@ NEEDS_RESTART=0
 ARG0=$0
 
 usage() {
-    echo "$ARG0 - Update a kite system"
+    echo "$ARG0 - Update a intrustd system"
     echo "Usage: $ARG0 [-h|--help] [--download-only]"
     echo
     echo "Options:"
@@ -15,7 +15,7 @@ usage() {
     echo "   --boot-only       Only set this as boot"
     echo "   --restart         Restart the system if the update requires"
     echo
-    echo "For support, please e-mail hi@flywithkite.com"
+    echo "For support, please e-mail help@intrustd.com"
 }
 
 while (( $# )); do
@@ -31,7 +31,7 @@ done
 echo "Checking for updates..."
 
 if [ ! -n "$HYDRA_JOB_URL" ]; then
-    HYDRA_JOB_URL=$(cat /etc/kite-update-url)
+    HYDRA_JOB_URL=$(cat /etc/intrustd-update-url)
 fi
 
 latest_system=$(@curl@ "$HYDRA_JOB_URL/latest" -H 'Accept: application/json' -Ls | @jq@ -r .buildoutputs.out.path)
@@ -41,7 +41,7 @@ echo "Upgrading to $(basename $latest_system)..."
 # nix-fetch $latest_system
 nix-store --realise $latest_system
 
-diff /run/current-system/etc/kite-boot-info $latest_system/etc/kite-boot-info >/dev/null
+diff /run/current-system/etc/intrustd-appliance-boot-info $latest_system/etc/intrustd-appliance-boot-info >/dev/null
 NEEDS_RESTART="$?"
 
 case "$DIRECTION" in

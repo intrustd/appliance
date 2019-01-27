@@ -1,6 +1,6 @@
-let app = import ../kite-appliance.nix {
+let app = import ../appliance.nix {
             platform = "odroid-hc2";
             nixpkgs-path = <nixpkgs>;
-            hydraJobUrl = "https://hydra.flywithkite.com/job/kitesystems/odroid-hc2/baseSystem";
+            hydraJobUrl = "https://hydra.intrustd.com/job/intrustd/odroid-hc2/baseSystem";
           };
 in { inherit (app) baseSystem sdCard; }

@@ -1,22 +1,22 @@
 { stdenv, jq, curl, lib, pkgs, ... }:
 
 stdenv.mkDerivation {
-  name = "kite-update";
+  name = "update-intrustd-appliance";
 
   src = ./update.sh;
 
   unpackPhase = ''
-    cp $src ./kite-update.sh
+    cp $src ./update-intrustd-appliance.sh
   '';
 
   buildPhase = ''
-     substituteAllInPlace kite-update.sh
+     substituteAllInPlace update-intrustd-appliance.sh
   '';
 
   installPhase = ''
      mkdir -p $out/bin/
-     cp ./kite-update.sh $out/bin/kite-update
-     chmod +x $out/bin/kite-update
+     cp ./update-intrustd-appliance.sh $out/bin/update-intrustd-appliance
+     chmod +x $out/bin/update-intrustd-appliance
   '';
 
   jq = "${lib.getBin jq}/bin/jq";

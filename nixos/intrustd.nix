@@ -2,31 +2,31 @@
 
 with lib;
 
-let stateDir = config.services.kite.stateDir;
+let stateDir = config.services.intrustd.stateDir;
 
-    kiteInitScript = ''
+    intrustdInitScript = ''
       mkdir -p ${stateDir}
       if [ ! -f ${stateDir}/key.pem ]; then
-        echo "Generating Kite Private Key"
+        echo "Generating Intrustd Private Key"
         ${lib.getBin pkgs.openssl_1_1}/bin/openssl ecparam -out "${stateDir}/key.ecparam.pem" -name prime256v1
         ${lib.getBin pkgs.openssl_1_1}/bin/openssl genpkey -paramfile "${stateDir}/key.ecparam.pem" -out "${stateDir}/key.pem"
       fi
 
-      chown kite:kite ${stateDir}/key.pem
+      chown intrustd:intrustd ${stateDir}/key.pem
       cp ${flocksFile} ${stateDir}/flocks
-      chown kite:kite ${stateDir}/flocks
+      chown intrustd:intrustd ${stateDir}/flocks
 
       mkdir -p ${stateDir}/trusted_keys
       for i in ${trustedKeysDir}/*; do
         ln -sf $i ${stateDir}/trusted_keys/$(basename $i)
       done
       ${lib.getBin pkgs.openssl_1_1}/bin/openssl ec -in ${stateDir}/key.pem -pubout -out ${stateDir}/trusted_keys/built_here_key.pem
-      chown -R kite:kite ${stateDir}/trusted_keys
+      chown -R intrustd:intrustd ${stateDir}/trusted_keys
 
-      chown kite:kite ${stateDir}
+      chown intrustd:intrustd ${stateDir}
 
       rm -f ${stateDir}/admin.sock
-      ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.flywithkite.com/admin.sock" "${stateDir}/admin.sock"
+      ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.intrustd.com/admin.sock" "${stateDir}/admin.sock"
     '';
 
     installAppScript = name: pkg: ''
@@ -70,7 +70,7 @@ let stateDir = config.services.kite.stateDir;
       options = {
         url = mkOption {
           type = types.string;
-          description = "Flock url in standard kite format";
+          description = "Flock url in standard intrustd format";
         };
 
         fingerprint = mkOption {
@@ -101,7 +101,7 @@ let stateDir = config.services.kite.stateDir;
     };
 
     flocksFile = pkgs.writeText "flocks"
-      (concatStringsSep "\n" (flip mapAttrsToList config.services.kite.flocks (name: flock:
+      (concatStringsSep "\n" (flip mapAttrsToList config.services.intrustd.flocks (name: flock:
          "${flock.url} ${flock.fingerprint}"
       )));
 
@@ -112,17 +112,17 @@ let stateDir = config.services.kite.stateDir;
          else publicKey);
 
     trustedKeysDir = pkgs.linkFarm "trusted-keys"
-      (flip mapAttrsToList config.services.kite.trustedKeys
+      (flip mapAttrsToList config.services.intrustd.trustedKeys
         (keyName: cfg: { name = "${keyName}.pem";
                          path = makeTrustedKey keyName cfg; }));
 
 in {
   options = {
-    services.kite = {
+    services.intrustd = {
       enable = mkOption {
         type = types.bool;
         description = ''
-          Whether to enable the kite service
+          Whether to enable the intrustd appliance service
         '';
         default = true;
       };
@@ -130,15 +130,15 @@ in {
       stateDir = mkOption {
         type = types.string;
         description = ''
-          Path to kite state dir
+          Path to intrustd appliance state dir
         '';
-        default = "/var/kite";
+        default = "/var/intrustd";
       };
 
       package = mkOption {
         type = types.package;
         description = ''
-          Which package to use as the default kite package
+          Which package to use as the default intrustd package
         '';
       };
 
@@ -146,7 +146,7 @@ in {
         type = types.attrsOf (types.submodule flockSubmoduleOpts);
         default = { };
         description = ''
-          Flocks to configure automatically on this kite
+          Flocks to configure automatically on this intrustd appliance
         '';
       };
 
@@ -177,9 +177,9 @@ in {
         (self: super: rec {
           lksctp-tools = self.callPackage ../pkgs/lksctp-tools {};
           nix-fetch = self.callPackage ../pkgs/nix-fetch {};
-          kite-static = self.callPackage ../pkgs/kite-static { };
-          kite = self.callPackage ../pkgs/kite { curl = kite-curl; };
-          kite-curl = super.curl.override {
+          intrustd-static = self.callPackage ../pkgs/intrustd-static { };
+          intrustd = self.callPackage ../pkgs/intrustd { curl = intrustd-curl; };
+          intrustd-curl = super.curl.override {
             c-aresSupport = true; sslSupport = true; idnSupport = true;
             scpSupport = true; gssSupport = true;
             brotliSupport = true; openssl = super.openssl_1_1;
@@ -187,78 +187,73 @@ in {
         })
       ];
 
-      services.kite.package = lib.mkDefault pkgs.kite; #(pkgs.kite.override { enableVerboseWebrtc = true; });
+      services.intrustd.package = lib.mkDefault pkgs.intrustd;
     }
 
-    (mkIf config.services.kite.enable {
+    (mkIf config.services.intrustd.enable {
        users.users = [
          {
-           name = "kite";
-           uid = config.ids.uids.kite;
-           description = "`kite` applianced separation user";
+           name = "intrustd";
+           uid = config.ids.uids.intrustd;
+           description = "`intrustd` applianced separation user";
            home = "/var/empty";
          }
 
          {
-           name = "kiteuser";
-           uid = config.ids.uids.kiteuser;
-           description = "Unprivileged kite user";
+           name = "intrustd-user";
+           uid = config.ids.uids.intrustd-user;
+           description = "Unprivileged intrustd user";
            home = "/var/empty";
          }
        ];
 
        users.groups = [
          {
-           name = "kite";
-           gid = config.ids.gids.kite;
+           name = "intrustd";
+           gid = config.ids.gids.intrustd;
          }
 
          {
-           name = "kiteuser";
-           gid = config.ids.gids.kiteuser;
+           name = "intrustd-user";
+           gid = config.ids.gids.intrustd-user;
          }
        ];
 
        runit.services = {
-         kite = {
+         intrustd = {
            logging = { enable = true; redirectStderr = true; };
            requires = [ "network" "nix-daemon" "mounts" ];
 	   path = [ config.nix.package.out pkgs.nix-fetch ];
 
            waitTime = 3600; # Wait up to an hour for everything to start. This should be way more than enough
 
-           environment.KITEPATH = "${config.services.kite.package.applianced}/bin";
+           environment.INTRUSTDPATH = "${config.services.intrustd.package.applianced}/bin";
            environment.HOME = stateDir;
 
            script = ''
              set -e
 
-             ${kiteInitScript}
+             ${intrustdInitScript}
 	     cd ${stateDir}
 
              ${installAppFn}
 
              # Install static apps
-             ${concatStringsSep "\n" (mapAttrsToList installAppScript config.services.kite.applications)}
+             ${concatStringsSep "\n" (mapAttrsToList installAppScript config.services.intrustd.applications)}
 
-             exec ${config.services.kite.package.applianced}/bin/applianced \
+             exec ${config.services.intrustd.package.applianced}/bin/applianced \
                --ebroute ${pkgs.ebtables}/bin/ebtables \
                --iproute ${pkgs.iproute}/bin/ip \
                -c ${stateDir} \
                -H ${pkgs.stdenv.hostPlatform.config} \
-               --user kite --group kite \
-               --kite-user kiteuser --kite-group kiteuser \
+               --user intrustd --group intrustd \
+               --app-user intrustd-user --app-group intrustd-user \
                --resolv-conf ${pkgs.writeText "resolv.conf" "nameserver 10.254.254.254\n"}
            '';
          };
        };
 
-#       system.activationScripts.kite = {
-#         text = kiteInitScript;
-#         deps = [];
-#       };
-
-       nix.trustedUsers = [ "kite" ];
+       nix.trustedUsers = [ "intrustd" ];
      })
   ];
 }

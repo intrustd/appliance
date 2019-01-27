@@ -2,14 +2,14 @@
 , pkgconfig, zlib, openssl_1_1, uthash, check, enableVerboseWebrtc ? false, enableDebug ? false }:
 
 stdenv.mkDerivation rec {
-   name = "kite-${version}";
+   name = "intrustd-${version}";
    version = "0.1.0";
 
    src = fetchFromGitHub {
-     owner = "kitecomputing";
-     repo = "kite";
-     rev = "898f844c4c7f3c6d94ebb1a15d10b3943969001f";
-     sha256 = "11cjrafvs6kfvi8700cp5kps1qldwg0l3ia8g09lnb1k54k0n32q";
+     owner = "intrustd";
+     repo = "daemon";
+     rev = "6c22539d98a0803e8c78970ebca573a637a7615c";
+     sha256 = "02cdl00mch67pdhhhqyhi3f8r3d9gh93xz63h4ynv15mnywnpzia";
    };
 
    nativeBuildInputs = [ cmake pkgconfig ];
@@ -46,8 +46,8 @@ stdenv.mkDerivation rec {
    '';
 
    meta = with stdenv.lib; {
-     description = "Kite binaries";
-     homepage = http://flywithkite.com/;
+     description = "Intrustd daemons";
+     homepage = http://intrustd.com/;
      licenses = licenses.mit;
      platforms = platforms.linux;
    };

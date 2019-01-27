@@ -17,7 +17,7 @@ in {
             emailoverride = "";
             keepnr = 3;
             inputs = {
-              nixpkgs = { type = "git"; value = "git://github.com/intrustd/nixpkgs.git kite"; emailresponsible = true; };
+              nixpkgs = { type = "git"; value = "git://github.com/intrustd/nixpkgs.git intrustd"; emailresponsible = true; };
               src = { type = "git"; value = "git://github.com/intrustd/appliance.git"; emailresponsible = true; };
             };
           };

@@ -1,15 +1,15 @@
-{ stdenv, kite, fetchFromGitHub, pkgs, nodejs-8_x, ... }:
+{ stdenv, intrustd, fetchFromGitHub, pkgs, nodejs-8_x, ... }:
 
 let admin-app = fetchFromGitHub {
-      owner = "kitecomputing";
+      owner = "intrustd";
       repo = "admin";
-      rev = "83eedcba4de9b35ed3b5adc5e48e63e3ee809b4e";
-      sha256 = "0qhcc2wd5mzrb6f7yjl1byvq7jjb4d51bx18qk76gnjklh943l8h";
+      rev = "973cc7d0f3a37c6bf029f39b0c0b897226a4b024";
+      sha256 = "0qj03324nksf9xa14dyl8hwcgxc9pz3rdvqc9iamn5jjrkz4jwgd";
     };
 
     nodeDeps = (((import (admin-app + /js) { pkgs = pkgs.buildPackages; nodejs = pkgs.buildPackages."nodejs-8_x"; }).shell.override { bypassCache = true; }).nodeDependencies);
 in stdenv.mkDerivation {
-  name = "kite-static";
+  name = "intrustd-static";
 
   src = admin-app;
 

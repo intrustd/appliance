@@ -26,14 +26,14 @@ in rec {
                    ./nixos/configuration.nix
                    ./nixos/profiles/minimal.nix ];
        config = {
-         kite = { inherit platform;
-                  updates.hydraJobUrl = hydraJobUrl; };
+         intrustd = { inherit platform;
+                      updates.hydraJobUrl = hydraJobUrl; };
          nixpkgs.crossSystem = system;
          nixpkgs.pkgs = (import nixpkgs-path {
           crossSystem = config.nixpkgs.crossSystem;
           overlays = config.nixpkgs.overlays; });
 
-         system.nixos.versionSuffix = "-kite";
+         system.nixos.versionSuffix = "-intrustd";
          system.nixos.revision = pkgRev;
        };
      };

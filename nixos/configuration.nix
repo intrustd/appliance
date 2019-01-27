@@ -1,7 +1,7 @@
 {lib, pkgs, config, ...}:
 
 {
-  imports = [ ./networking.nix ./ssh.nix ./kite.nix ./kite-apps.nix ./updates.nix ];
+  imports = [ ./networking.nix ./ssh.nix ./intrustd.nix ./apps.nix ./updates.nix ];
 
   nixpkgs.overlays = [
     (self: super: {
@@ -38,14 +38,14 @@
   # TODO services.cron.enable = true;
 
   environment.etc."os-release".text = lib.mkOverride 10 ''
-    NAME=KiteOS
-    ID=kite
+    NAME=IntrustdOS
+    ID=intrustd
     VERSION="${config.system.nixos.version} (${config.system.nixos.codeName})"
     VERSION_CODENAME=${lib.toLower config.system.nixos.codeName}
     VERSION_ID="${config.system.nixos.version}"
-    PRETTY_NAME="KiteOS ${config.system.nixos.version} (${config.system.nixos.codeName})"
-    HOME_URL="https://flywithkite.com/"
-    SUPPORT_URL="https://flywithkite.com/support"
-    BUG_REPORT_URL="https://github.com/kitecomputing/kite-system/issues"
+    PRETTY_NAME="IntrustdOS ${config.system.nixos.version} (${config.system.nixos.codeName})"
+    HOME_URL="https://intrustd.com/"
+    SUPPORT_URL="https://intrustd.com/support"
+    BUG_REPORT_URL="https://github.com/intrustd/appliance/issues"
   '';
 }

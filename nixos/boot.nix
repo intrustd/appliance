@@ -7,11 +7,11 @@
   ];
 
   config = {
-    boot.boards."${config.kite.platform}".enable = true;
+    boot.boards."${config.intrustd.platform}".enable = true;
   };
 
   options = with lib; {
-    kite.platform = mkOption {
+    intrustd.platform = mkOption {
       type = types.string;
       description = "Platform name";
     };

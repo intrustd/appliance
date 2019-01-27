@@ -112,7 +112,7 @@ in {
     };
 
     system.build.installBootLoader = "${buildBootIni pkgs}";
-    system.build.loader.id = "kite-odroid";
+    system.build.loader.id = "intrustd-odroid";
 
     boot.initrd.checkJournalingFS = false;
     boot.kernelPackages = pkgs.linuxPackages_custom rec {
@@ -194,13 +194,13 @@ in {
       { device = "/dev/sda1"; }
     ];
 
-    fileSystems.kite = {
+    fileSystems.intrustd = {
       device = "/dev/sda2";
       fsType = "btrfs";
-      mountPoint = "/mnt/kite";
+      mountPoint = "/mnt/intrustd";
       noCheck = true;
     };
 
-    services.kite.stateDir = "/mnt/kite/kite";
+    services.intrustd.stateDir = "/mnt/intrustd/data";
   };
 }
