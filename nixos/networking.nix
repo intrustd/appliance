@@ -13,12 +13,12 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 80 ];
-    extraCommands = "iptables -I INPUT 1 -i intrustd-link -j ACCEPT";
+    extraCommands = "iptables -I INPUT 1 -i intrustd-inet -j ACCEPT";
   };
 
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "intrustd-link" ];
+    internalInterfaces = [ "intrustd-inet" ];
     internalIPs = [ "10.0.0.0/8" ];
     externalInterface = "eth0";
   };

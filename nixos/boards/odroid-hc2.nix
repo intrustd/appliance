@@ -184,7 +184,10 @@ in {
         '';
     };
 
-    boot.kernelParams = [ "net.ifnames=1" ];
+    boot.kernelParams = [
+      "net.ifnames=1" # Predictable network interface names
+      "usb-storage.quirks=152d:0578:u" # Disable UAS on the USB3<->SATA interface
+    ];
 
     nixpkgs.overlays = [ (self: super: {
       dhcpcd = super.dhcpcd.override { udev = null; };

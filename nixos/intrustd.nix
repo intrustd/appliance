@@ -52,6 +52,7 @@ let stateDir = config.services.intrustd.stateDir;
         local mf_digest=$(cat "$2" | ${lib.getBin pkgs.openssl_1_1}/bin/openssl dgst -sha256 | ${lib.getBin pkgs.gawk}/bin/gawk '{print $2}')
 
         mkdir -p "${stateDir}/manifests"
+        chown intrustd:intrustd "${stateDir}/manifests"
         cp "$2" "${stateDir}/manifests/$mf_digest"
         ${lib.getBin pkgs.openssl_1_1}/bin/openssl dgst -sha256 -sign ${stateDir}/key.pem "$2" | ${lib.getBin pkgs.openssl_1_1}/bin/openssl base64 -out "${stateDir}/manifests/$mf_digest.sign"
 
@@ -60,6 +61,7 @@ let stateDir = config.services.intrustd.stateDir;
         else
           echo "$1 $mf_digest" > "${stateDir}/.apps.tmp"
         fi
+        chown intrustd:intrustd "${stateDir}/manifests"
 
         mv "${stateDir}/.apps.tmp" "${stateDir}/apps"
       }
