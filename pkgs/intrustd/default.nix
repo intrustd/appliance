@@ -8,8 +8,8 @@ stdenv.mkDerivation rec {
    src = fetchFromGitHub {
      owner = "intrustd";
      repo = "daemon";
-     rev = "3bc296e58ddc4e861edc3e7a40c34562b25c90a4";
-     sha256 = "0mzlvvys02226ra1zi2iszjr713fdjsrx108wldlr3jj7nli1imm";
+     rev = "ca918ece42f16253ee4f722c9b8a9a6f43e17fc3";
+     sha256 = "0bd3sjf0j6wnv9c1hva46r0mymidyja7wbk47h0fzc63cav2ban0";
    };
 
    nativeBuildInputs = [ cmake pkgconfig ];
