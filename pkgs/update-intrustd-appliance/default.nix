@@ -1,25 +1,32 @@
-{ stdenv, jq, curl, lib, pkgs, ... }:
+{ stdenv, jq, curl, nix-fetch, runit, lib, pkgs, ... }:
 
 stdenv.mkDerivation {
   name = "update-intrustd-appliance";
 
-  src = ./update.sh;
+  src = ./src;
 
   unpackPhase = ''
-    cp $src ./update-intrustd-appliance.sh
+    cp $src/update-intrustd-appliance.sh ./update-intrustd-appliance.sh
+    cp $src/intrustd-update-server.sh ./intrustd-update-server.sh
   '';
 
   buildPhase = ''
      substituteAllInPlace update-intrustd-appliance.sh
+     substituteAllInPlace intrustd-update-server.sh
   '';
 
   installPhase = ''
      mkdir -p $out/bin/
+     mkdir -p $out/share/intrustd
      cp ./update-intrustd-appliance.sh $out/bin/update-intrustd-appliance
+     cp ./intrustd-update-server.sh $out/share/intrustd/intrustd-update-server
      chmod +x $out/bin/update-intrustd-appliance
+     chmod +x $out/share/intrustd/intrustd-update-server
   '';
 
   jq = "${lib.getBin jq}/bin/jq";
   curl = "${lib.getBin curl}/bin/curl";
+  nixFetch = "${lib.getBin nix-fetch}/bin/nix-fetch";
+  runitInit = "${lib.getBin runit}/bin/runit-init";
   inherit (pkgs) runtimeShell;
 }

@@ -45,6 +45,17 @@ in {
       %hourly,mailto(intrustd),random(true),erroronlymail(true) * ${nixGcScript}
       '';
 
+      runit.services.intrustd-updates = {
+        requires = [ "network" "nix-daemon" "mounts" ];
+        path = [ pkgs.socat pkgs.coreutils ];
+
+        script = ''
+          set -e
+
+          mkdir -p ${intrustdDir}
+          socat UNIX-LISTEN${intrustdDir}/system-socket,fork exec:${pkgs.update-intrustd-appliance}/share/intrustd/intrustd-update-server,stderr
+        '';
+      };
     }
 
     (lib.mkIf (config.intrustd.updates.hydraJobUrl != null) {

@@ -46,7 +46,6 @@ NEEDS_RESTART="$?"
 
 case "$DIRECTION" in
     download)
-        $latest_system/bin/switch-to-configuration dry-activate
         ;;
 
     boot)
