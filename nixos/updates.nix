@@ -4,6 +4,8 @@ let nixGcScript = pkgs.writeScript "nix-gc" ''
       exec ${config.nix.package.out}/bin/nix-collect-garbage
     '';
 
+    intrustdDir = config.services.intrustd.stateDir;
+
 in {
   options = with lib; {
     intrustd.updates.hydraJobUrl = mkOption {
