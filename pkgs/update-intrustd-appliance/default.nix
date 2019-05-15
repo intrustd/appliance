@@ -6,7 +6,7 @@ stdenv.mkDerivation {
   src = ./src;
 
   unpackPhase = ''
-    cp $src/update-intrustd-appliance.sh ./update-intrustd-appliance.sh
+    cp $src/update.sh ./update-intrustd-appliance.sh
     cp $src/intrustd-update-server.sh ./intrustd-update-server.sh
   '';
 
