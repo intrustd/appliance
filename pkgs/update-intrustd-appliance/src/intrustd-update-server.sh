@@ -33,7 +33,8 @@ while read -r line; do
             ;;
 
         latest)
-            echo "200 $(print_latest)"
+            echo -n "200 "
+            print_latest
             ;;
 
         update)
