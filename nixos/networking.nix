@@ -91,8 +91,7 @@
     extraConfig = ''
       url.rewrite-once = ( "^/login(/)?$" => "/login.html" )
 
-      server.errorlog = "/dev/stderr";
-      accesslog.filename = "/dev/stdout";
+      server.stream-request-body = 2
 
       setenv.add-request-header = (
         "X-Intrustd-Admin-Source" => "local-network"
