@@ -1,5 +1,5 @@
 { stdenv, jq, curl, nix-fetch,
-  runit, util-linux, intrustdDir ? "/var/intrustd",
+  runit, utillinux, intrustdDir ? "/var/intrustd",
   lib, pkgs, ... }:
 
 stdenv.mkDerivation {
@@ -30,7 +30,7 @@ stdenv.mkDerivation {
   curl = "${lib.getBin curl}/bin/curl";
   nixFetch = "${lib.getBin nix-fetch}/bin/nix-fetch";
   runitInit = "${lib.getBin runit}/bin/runit-init";
-  flock = "${lib.getBin util-linux}/bin/flock";
+  flock = "${lib.getBin utillinux}/bin/flock";
   inherit intrustdDir;
   inherit (pkgs) runtimeShell;
 }
