@@ -19,7 +19,7 @@ in {
     {
       nixpkgs.overlays = [
         (self: super: {
-          update-intrustd-appliance = self.callPackage ../pkgs/update-intrustd-appliance {};
+          update-intrustd-appliance = self.callPackage ../pkgs/update-intrustd-appliance { inherit intrustdDir; };
          })
       ];
 

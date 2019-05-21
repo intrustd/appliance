@@ -48,21 +48,24 @@ while read -r line; do
 
             LOG=$(echo "$UPDATE_INFO" | @jq@ -r .log)
 
-            echo "201 0 1000 Getting latest system"
-            LATEST_SYSTEM=$(print_latest)
-            echo "201 100 1000 Downloading"
-            @nixFetch@ --add-indirect-root /run/downloaded-system $LATEST_SYSTEM 2>&1 | tee $LOG | parse_nix_fetch_output 100 850 1000
-            if "$DOWNLOAD_ONLY"; then
-                echo "201 1000 1000 Done"
-                echo "Downloading only" >> $LOG
-                echo "200 Done"
-            else
-                echo "201 860 1000 Activating system..."
-                echo "Activating..." >> $LOG
-                echo "201 990 1000 Cleaning up"
-                echo "201 1000 1000 Done"
-                echo "200 Done"
-            fi
+            (
+                @flock@ -x 200
+                echo "201 0 1000 Getting latest system"
+                LATEST_SYSTEM=$(print_latest)
+                echo "201 100 1000 Downloading"
+                @nixFetch@ --add-indirect-root /run/downloaded-system $LATEST_SYSTEM 2>&1 | tee $LOG | parse_nix_fetch_output 100 850 1000
+                if "$DOWNLOAD_ONLY"; then
+                    echo "201 1000 1000 Done"
+                    echo "Downloading only" >> $LOG
+                    echo "200 Done"
+                else
+                    echo "201 860 1000 Activating system..."
+                    echo "Activating..." >> $LOG
+                    echo "201 990 1000 Cleaning up"
+                    echo "201 1000 1000 Done"
+                    echo "200 Done"
+                fi
+            ) 200>@intrustdDir@/intrustd-system-update.lock
             ;;
 
         reboot)

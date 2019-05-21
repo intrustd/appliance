@@ -1,4 +1,6 @@
-{ stdenv, jq, curl, nix-fetch, runit, lib, pkgs, ... }:
+{ stdenv, jq, curl, nix-fetch,
+  runit, util-linux, intrustdDir ? "/var/intrustd",
+  lib, pkgs, ... }:
 
 stdenv.mkDerivation {
   name = "update-intrustd-appliance";
@@ -28,5 +30,7 @@ stdenv.mkDerivation {
   curl = "${lib.getBin curl}/bin/curl";
   nixFetch = "${lib.getBin nix-fetch}/bin/nix-fetch";
   runitInit = "${lib.getBin runit}/bin/runit-init";
+  flock = "${lib.getBin util-linux}/bin/flock";
+  inherit intrustdDir;
   inherit (pkgs) runtimeShell;
 }

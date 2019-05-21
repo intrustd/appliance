@@ -3,8 +3,8 @@
 let admin-app = fetchFromGitHub {
       owner = "intrustd";
       repo = "admin";
-      rev = "7e3aecdb3ea5daa8f1342457026d062320bc322b";
-      sha256 = "176yls6dk4dc9wh64f4dw55hpn7sag3v7mdkz6gi522514mnggxs";
+      rev = "cd9fd93dd3cb770d77655c49f9cd260832aa53e7";
+      sha256 = "1a9kab8mr8qi0dxcqbsd58yfl16vc3mvlrr6s3vpvwlp66l064w9";
     };
 
     nodeDeps = (((import (admin-app + /js) { pkgs = pkgs.buildPackages; nodejs = pkgs.buildPackages."nodejs-8_x"; }).shell.override { bypassCache = true; }).nodeDependencies);
