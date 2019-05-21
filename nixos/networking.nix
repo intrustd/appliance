@@ -86,10 +86,13 @@
     enable = true;
 
     document-root = pkgs.intrustd-static;
-    enableModules = [ "mod_scgi" "mod_setenv" "mod_rewrite" ];
+    enableModules = [ "mod_scgi" "mod_setenv" "mod_rewrite" "mod_accesslog" ];
 
     extraConfig = ''
       url.rewrite-once = ( "^/login(/)?$" => "/login.html" )
+
+      server.errorlog = "/dev/stderr";
+      accesslog.filename = "/dev/stdout";
 
       setenv.add-request-header = (
         "X-Intrustd-Admin-Source" => "local-network"
