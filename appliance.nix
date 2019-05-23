@@ -58,4 +58,6 @@ in rec {
     diskSize = "2048";
     label = "NIXOS_SD";
   };
+
+  buildApp = import ./nixos/build-bundle.nix config.nixpkgs.pkgs;
 }

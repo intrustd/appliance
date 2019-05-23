@@ -38,6 +38,14 @@
       enableValgrindHints = false;
     });
 
+    libvpx = super.libvpx.override { examplesSupport = false; };
+    libva = super.libva.override { minimal = true; };
+
+    ffmpeg = super.ffmpeg.override { sdlSupport = false; glSupport = false;
+                                     libpulseaudio = null; samba = null;
+                                     openal = null; libjack2 = null;
+                                     libmodplug = null; };
+
     #cairo = super.cairo.override { glSupport = false; };
 
     #libdevil = super.libdevil.override { libGL = null; libX11 = null; };
