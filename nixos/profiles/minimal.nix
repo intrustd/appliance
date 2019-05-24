@@ -38,7 +38,7 @@
       enableValgrindHints = false;
     });
 
-    libvpx = super.libvpx.override { examplesSupport = false; };
+    libvpx = super.libvpx.override { examplesSupport = false; vp9HighbitdepthSupport = false; };
     libva = super.libva.override { minimal = true; };
 
     ffmpeg = super.ffmpeg.override { sdlSupport = false; glSupport = false;
@@ -53,6 +53,7 @@
     gnupg22 = super.gnupg22.override { openldap = null; guiSupport = false; pinentry = null; };
     gnupg = self.gnupg22;
 
+#    cairo = super.cairo.override { x11Support = false; };
     libselinux = super.libselinux.override { fts = null; };
 
     nix = super.nix.override { withAWS = false; }; # AWS is needed to write. We don't need that
