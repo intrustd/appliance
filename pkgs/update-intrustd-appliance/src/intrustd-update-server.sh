@@ -53,7 +53,7 @@ while read -r line; do
                 echo "201 0 1000 Getting latest system"
                 LATEST_SYSTEM=$(print_latest)
                 echo "201 100 1000 Downloading"
-                @nixFetch@ --add-indirect-root /run/downloaded-system $LATEST_SYSTEM 2>&1 | tee $LOG | parse_nix_fetch_output 100 850 1000
+                @nixFetch@ --add-indirect-root /run/downloaded-system $LATEST_SYSTEM 2>$LOG.stderr | tee $LOG | parse_nix_fetch_output 100 850 1000
                 if "$DOWNLOAD_ONLY"; then
                     echo "201 1000 1000 Done"
                     echo "Downloading only" >> $LOG
