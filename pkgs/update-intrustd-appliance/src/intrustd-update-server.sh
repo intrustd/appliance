@@ -61,7 +61,9 @@ while read -r line; do
                 else
                     echo "201 860 1000 Activating system..."
                     echo "Activating..." >> $LOG
+                    /run/downloaded-system/bin/switch-to-configuration boot >> $LOG
                     echo "201 990 1000 Cleaning up"
+                    rm /run/downloaded-system
                     echo "201 1000 1000 Done"
                     echo "200 Done"
                 fi
