@@ -55,6 +55,7 @@ in {
           set -e
 
           mkdir -p ${intrustdDir}
+          rm -f ${stateDir}/admin.sock
           socat UNIX-LISTEN:${intrustdDir}/system-socket,fork,user=intrustd,group=intrustd exec:${pkgs.update-intrustd-appliance}/share/intrustd/intrustd-update-server,stderr
         '';
       };

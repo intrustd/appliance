@@ -28,7 +28,7 @@ let stateDir = config.services.intrustd.stateDir;
       touch ${stateDir}/intrustd-system-update.lock
       chown intrustd:intrustd ${stateDir}/intrustd-system-update.lock
 
-      rm -f ${stateDir}/admin.sock ${stateDir}/system-socket
+      rm -f ${stateDir}/admin.sock
       ln -s "${stateDir}/personas/0000000000000000000000000000000000000000000000000000000000000000/data/admin.intrustd.com/admin.sock" "${stateDir}/admin.sock"
     '';
 
