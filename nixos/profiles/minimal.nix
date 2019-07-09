@@ -53,7 +53,14 @@
 
     #libdevil = super.libdevil.override { libGL = null; libX11 = null; };
 
-    gnupg22 = super.gnupg22.override { openldap = null; guiSupport = false; pinentry = null; };
+    gnupg22 = (super.gnupg22.override { openldap = null; guiSupport = false; pinentry = null; })
+        .overrideDerivation (super: { configureFlags = super.configureFlags ++ [
+                                         "--with-libgpg-error-prefix=${pkgs.libgpgerror.dev}"
+                                         "--with-libassuan-prefix=${pkgs.libassuan.dev}"
+                                         "--with-libgcrypt-prefix=${pkgs.libgcrypt.dev}"
+                                         "--with-ksba-prefix=${pkgs.libksba.dev}"
+                                         "--with-npth-prefix=${pkgs.npth}"
+                                      ]; });
     gnupg = self.gnupg22;
 
 #    cairo = super.cairo.override { x11Support = false; };
