@@ -38,6 +38,9 @@
       enableValgrindHints = false;
     });
 
+    libgcrypt = super.libgcrypt.overrideDerivation (super: { configureFlags = super.configureFlags ++ [ "--disable-asm" ]; });
+    pcsclite = super.pcsclite.overrideDerivation (super: { configureFlags = super.configureFlags ++ [ "--disable-libsystemd" ]; });
+
     libvpx = super.libvpx.override { examplesSupport = false; vp9HighbitdepthSupport = false; };
     libva = super.libva.override { minimal = true; };
 
@@ -68,6 +71,7 @@
 #      enableKmod = false;
 #      enableUtmp = false;
 #    };
+
   })) ];
 
   systemd.enable = false;
