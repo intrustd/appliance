@@ -60,7 +60,8 @@
                                          "--with-libgcrypt-prefix=${pkgs.libgcrypt.dev}"
                                          "--with-ksba-prefix=${pkgs.libksba.dev}"
                                          "--with-npth-prefix=${pkgs.npth}"
-                                      ]; });
+                                      ];
+                                      depsBuildBuild = [ pkgs.buildPackages.stdenv.cc ]; });
     gnupg = self.gnupg22;
 
 #    cairo = super.cairo.override { x11Support = false; };
