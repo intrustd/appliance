@@ -1,6 +1,8 @@
 { lib, pkgs, ... }:
 
-{
+let iconv-detect-h = pkgs.writeText "iconv-detect.h" iconvDetects.${pkgs.stdenv.hostPlatform.platform.kernelArch};
+    iconvDetects = { "x86_64" = builtins.readFile ./gmime-iconv-detect-x86_64.h; armv7 = builtins.readFile ./gmime-iconv-detect-armv7.h; };
+in {
   environment.systemPackages = [
     pkgs.testdisk
     pkgs.parted
@@ -63,6 +65,13 @@
                                       ];
                                       depsBuildBuild = [ pkgs.buildPackages.stdenv.cc ]; });
     gnupg = self.gnupg22;
+    gmime = super.gmime.overrideDerivation (super: {
+      postPatch = ''
+        ${super.postPatch}
+        cp ${iconv-detect-h} ./iconv-detect.h
+      '';
+      configureFlags = super.configureFlags ++ [ "ac_cv_have_iconv_detect_h=yes" ];
+    });
 
 #    cairo = super.cairo.override { x11Support = false; };
     libselinux = super.libselinux.override { fts = null; };
