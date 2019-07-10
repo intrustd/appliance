@@ -46,6 +46,8 @@ in {
     libvpx = super.libvpx.override { examplesSupport = false; vp9HighbitdepthSupport = false; };
     libva = super.libva.override { minimal = true; };
 
+    openblas = super.openblas.override { openmp = false; };
+
     ffmpeg = super.ffmpeg.override { sdlSupport = false; glSupport = false;
                                      libpulseaudio = null; samba = null;
                                      openal = null; libjack2 = null;
