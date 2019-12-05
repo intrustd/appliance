@@ -24,7 +24,8 @@ in rec {
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
-                   ./nixos/profiles/minimal.nix ];
+                   ./nixos/profiles/minimal.nix
+                   ./virtualbox.nix ];
        config = {
          intrustd = { inherit platform;
                       updates.hydraJobUrl = hydraJobUrl; };
@@ -49,6 +50,8 @@ in rec {
 
   config= systemImg.config;
   baseSystem = systemImg.config.system.build.toplevel;
+
+  virtualBoxImage = systemImg.config.system.build.virtualBoxOVA;
 
   diskImage = import (nixpkgs-path + /nixos/lib/make-disk-image.nix) {
     lib = config.nixpkgs.pkgs.lib;

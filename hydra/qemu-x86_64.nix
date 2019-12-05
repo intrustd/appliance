@@ -3,4 +3,5 @@ let app = import ../appliance.nix {
             nixpkgs-path = <nixpkgs>;
             hydraJobUrl = "https://hydra.intrustd.com/job/intrustd/qemu-x86_64/baseSystem";
           };
-in { baseSystem = { ... }: app.baseSystem; }
+in { baseSystem = { ... }: app.baseSystem;
+     virtualBoxImage = { ... }: app.virtualBoxImage; }
