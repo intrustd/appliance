@@ -21,6 +21,7 @@ in rec {
   systemImg = systemConfig {
      module = { config, ... }: {
        imports = [ (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix)
+                   (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix)
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
