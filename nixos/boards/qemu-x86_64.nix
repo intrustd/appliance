@@ -41,6 +41,7 @@ with lib;
 #    environment.systemPackages = [ pkgs.syslinux ];
 
     boot.kernelPackages = pkgs.linuxPackages_4_18;
-    fileSystems."/boot".options = [ "noauto" ];
+
+    fileSystems."/boot".options = mkIf (config.intrustd.medium == "sd") [ "noauto" ];
   };
 }

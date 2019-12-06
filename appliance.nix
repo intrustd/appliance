@@ -26,7 +26,7 @@ in rec {
                    ./nixos/configuration.nix
                    ./nixos/profiles/minimal.nix ];
        config = {
-         intrustd = { inherit platform;
+         intrustd = { inherit platform medium;
                       updates.hydraJobUrl = hydraJobUrl; };
          nixpkgs.crossSystem = system;
          nixpkgs.pkgs = (import nixpkgs-path {
