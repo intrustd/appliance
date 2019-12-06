@@ -54,8 +54,41 @@
   networking.dnsExtensionMechanism = false;
 
   # enable time synchronization
-  services.openntpd.enable = true;
-  services.openntpd.extraOptions = "-s"; # Set time immediately on startup
+  enviroment.systemPackages = [ pkgs.openntpd_nixos ];
+  environtment.etc."ntpd.conf".text = ''
+    ${lib.concatStringsSep "\n" (map (s: "server ${s}") config.services.openntpd.servers)}
+  '';
+  users.users.ntp = { uid = config.ids.uids.ntp;
+                      description = "OpenNTP daemon user";
+                      home = "/var/empty";
+                    };
+  runit.services.openntpd =
+    let ntpdScript = pkgs.writeScript "start-ntpd" ''
+          mount -o bind ${ntpdResolvConf} /etc/resolv.conf
+          exec ${pkgs.openntpd_nixos}/bin/ntpd -p ${pidFile} -s -d
+        '';
+
+        pidFile = "/run/openntpd.pid";
+
+        baseDnsServers = [ "1.1.1.1" "1.0.0.1" "8.8.8.8" "8.8.4.4"
+                           "2606:4700:4700::1111" "2606:4700:4700::1001" #Cloud flare
+                           "2001:4860:4860::8888" "2001:4860:4860::8844" # Google
+                         ];
+
+        ntpdResolvConf = ''
+          ${map (s: "nameserver ${s}") baseDnsServers}
+        '';
+    in {
+      requires = [ "network-online" ];
+      logging = {
+        enable = true;
+        redirectStderr = true;
+      };
+
+      script = ''
+        exec ${pkgs.utillinux}/bin/unshare --mount ${ntpdScript}
+      '';
+    };
 
   # enable avahi (mdns / bonjour)
   services.avahi.enable = true;
