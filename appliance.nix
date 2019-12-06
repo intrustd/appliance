@@ -18,15 +18,18 @@ let system = builtins.getAttr platform (import ./systems.nix);
 in rec {
   nixos = import (nixpkgs-path + /nixos/release.nix) { nixpkgs = import nixpkgs-path; };
 
-  systemImg = systemConfig {
+  media = { sd = (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix);
+            vbox = (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix); };
+
+  systemImg = medium: systemConfig {
      module = { config, ... }: {
-       imports = [ (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix)
-                   (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix)
+       imports = [ media."${medium}"
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
                    ./nixos/profiles/minimal.nix
-                   ./virtualbox.nix ];
+                   ./virtualbox.nix
+                   { config = extraConfig; } ];
        config = {
          intrustd = { inherit platform;
                       updates.hydraJobUrl = hydraJobUrl; };
@@ -42,17 +45,20 @@ in rec {
      system = system.config;
   };
 
-  sdCard = systemImg.config.system.build.sdImage;
-  initialRamdisk = systemImg.config.system.build.initialRamdisk;
+  sdSystemImg = systemImg "sd";
+  vboxSystemImg = systemImg "vbox";
 
-  kernel = systemImg.config.boot.kernelPackages.kernel;
+  sdCard = sdSystemImg.config.system.build.sdImage;
+  initialRamdisk = sdSystemImg.config.system.build.initialRamdisk;
+
+  kernel = sdSystemImg.config.boot.kernelPackages.kernel;
 
   pkgs =  config.nixpkgs.pkgs;
 
-  config= systemImg.config;
-  baseSystem = systemImg.config.system.build.toplevel;
+  config = sdSystemImg.config;
+  baseSystem = sdSystemImg.config.system.build.toplevel;
 
-  virtualBoxImage = systemImg.config.system.build.virtualBoxOVA;
+  virtualBoxImage = vboxSystemImg.config.system.build.virtualBoxOVA;
 
   diskImage = import (nixpkgs-path + /nixos/lib/make-disk-image.nix) {
     lib = config.nixpkgs.pkgs.lib;
