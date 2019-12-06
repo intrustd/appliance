@@ -91,7 +91,7 @@ in {
 #      enableUtmp = false;
 #    };
 
-    cloud-utils = super.cloud-utils.override { euca2ools = null; };
+    cloud-utils = super.cloud-utils.override { euca2ools = null; qemu = null; };
 
   })) ];
 
