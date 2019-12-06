@@ -3,6 +3,10 @@
 with lib;
 
 {
+  imports = [
+    (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix)
+  ];
+
   options = {
     boot.boards.qemu-x86_64.enable = mkOption {
       type = types.bool;
