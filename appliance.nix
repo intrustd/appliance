@@ -19,7 +19,10 @@ in rec {
   nixos = import (nixpkgs-path + /nixos/release.nix) { nixpkgs = import nixpkgs-path; };
 
   media = { sd = (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix);
-            vbox = (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix); };
+            vbox = { imports = [
+              (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix)
+              ./virtualbox.nix
+              ]; }; };
 
   systemImg = medium: systemConfig {
      module = { config, ... }: {
@@ -27,9 +30,7 @@ in rec {
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
-                   ./nixos/profiles/minimal.nix
-                   ./virtualbox.nix
-                   { config = extraConfig; } ];
+                   ./nixos/profiles/minimal.nix ];
        config = {
          intrustd = { inherit platform;
                       updates.hydraJobUrl = hydraJobUrl; };
