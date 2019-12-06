@@ -55,7 +55,7 @@
 
   # enable time synchronization
   enviroment.systemPackages = [ pkgs.openntpd_nixos ];
-  environtment.etc."ntpd.conf".text = ''
+  environment.etc."ntpd.conf".text = ''
     ${lib.concatStringsSep "\n" (map (s: "server ${s}") config.services.openntpd.servers)}
   '';
   users.users.ntp = { uid = config.ids.uids.ntp;
