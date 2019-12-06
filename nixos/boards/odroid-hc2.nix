@@ -98,112 +98,117 @@ in {
     };
   };
 
-  config = lib.mkIf config.boot.boards.odroid-hc2.enable {
-    boot.loader.grub.enable = false;
+  config =
+    let basicOdroid =
+          lib.mkIf config.boot.boards.odroid-hc2.enable {
+            boot.loader.grub.enable = false;
 #    boot.loader.generic-extlinux-compatible.enable = true;
 
-    boot.boards.odroid-hc2.fw-offsets =
-      if config.boot.boards.odroid-hc2.mode == "sd"
-      then sd-positions else mmc-positions;
+            boot.boards.odroid-hc2.fw-offsets =
+              if config.boot.boards.odroid-hc2.mode == "sd"
+              then sd-positions else mmc-positions;
 
-    services.mingetty.manualConsole = {
-      tty1 = { type = "vt102";  };
-      ttySAC2 = { type = "vt102"; };
-    };
+            services.mingetty.manualConsole = {
+              tty1 = { type = "vt102";  };
+              ttySAC2 = { type = "vt102"; };
+            };
 
-    system.build.installBootLoader = "${buildBootIni pkgs}";
-    system.build.loader.id = "intrustd-odroid";
+            system.build.installBootLoader = "${buildBootIni pkgs}";
+            system.build.loader.id = "intrustd-odroid";
 
-    boot.initrd.checkJournalingFS = false;
-    boot.kernelPackages = pkgs.linuxPackages_custom rec {
-      version = "4.14.78"; # 77 for bak
+            boot.initrd.checkJournalingFS = false;
+            boot.kernelPackages = pkgs.linuxPackages_custom rec {
+              version = "4.14.78"; # 77 for bak
 
-      src = pkgs.fetchFromGitHub {
-        owner = "hardkernel";
-        repo = "linux";
-        rev = "c3e379003dd5272b48f2676c21abf0493aac4e33";
-        sha256 = "0139qciaf1vlz41s9idjbcx20c1svrp1l7qaazfkwfx52ghb4pvv";
-#        url = "mirror://kernel/linux/kernel/v4.x/linux-${version}.tar.xz";
-#        sha256 = "1y567wkr4p7hywq3pdw06yc4hi16rp1vkx764wzy5nyajkhz95h4";
-      };
+              src = pkgs.fetchFromGitHub {
+                owner = "hardkernel";
+                repo = "linux";
+                rev = "c3e379003dd5272b48f2676c21abf0493aac4e33";
+                sha256 = "0139qciaf1vlz41s9idjbcx20c1svrp1l7qaazfkwfx52ghb4pvv";
+        #        url = "mirror://kernel/linux/kernel/v4.x/linux-${version}.tar.xz";
+        #        sha256 = "1y567wkr4p7hywq3pdw06yc4hi16rp1vkx764wzy5nyajkhz95h4";
+              };
 
-      configfile = ./odroid-hc-config.config;
+              configfile = ./odroid-hc-config.config;
 
-      kernelPatches = [
-        { name = "0001"; patch = ./odroid-hc2/0001-sctp-factor-out-stream-out-allocation.patch;        }
-        { name = "0002"; patch = ./odroid-hc2/0002-sctp-factor-out-stream-in-allocation.patch;	       }
-        { name = "0003"; patch = ./odroid-hc2/0003-sctp-introduce-struct-sctp_stream_out_ext.patch;    }
-        { name = "0004"; patch = ./odroid-hc2/0004-sctp-introduce-sctp_chunk_stream_no.patch;	       }
-        { name = "0005"; patch = ./odroid-hc2/0005-sctp-introduce-stream-scheduler-foundations.patch;  }
-        { name = "0006"; patch = ./odroid-hc2/0006-sctp-add-sockopt-to-get-set-stream-scheduler.patch; }
-        { name = "0007"; patch = ./odroid-hc2/0007-sctp-add-sockopt-to-get-set-stream-scheduler-paramet.patch; }
-        { name = "0008"; patch = ./odroid-hc2/0008-sctp-introduce-priority-based-stream-scheduler.patch;       }
-        { name = "0009"; patch = ./odroid-hc2/0009-sctp-introduce-round-robin-stream-scheduler.patch;	       }
-        { name = "0010"; patch = ./odroid-hc2/0010-sctp-make-array-sctp_sched_ops-static.patch;		       }
-        { name = "0011"; patch = ./odroid-hc2/0011-net-sctp-Convert-timers-to-use-timer_setup.patch;	       }
-        { name = "0012"; patch = ./odroid-hc2/0012-sctp-fix-error-return-code-in-sctp_send_add_streams.patch;  }
-        { name = "0013"; patch = ./odroid-hc2/0013-sctp-do-not-free-asoc-when-it-is-already-dead-in-sct.patch; }
-        { name = "0014"; patch = ./odroid-hc2/0014-sctp-use-the-right-sk-after-waking-up-from-wait_buf-.patch; }
-        { name = "0015"; patch = ./odroid-hc2/0015-sctp-check-stream-reset-info-len-before-making-recon.patch; }
-        { name = "0016"; patch = ./odroid-hc2/0016-sctp-use-sizeof-__u16-for-each-stream-number-length-.patch; }
-        { name = "0017"; patch = ./odroid-hc2/0017-sctp-only-allow-the-out-stream-reset-when-the-stream.patch; }
+              kernelPatches = [
+                { name = "0001"; patch = ./odroid-hc2/0001-sctp-factor-out-stream-out-allocation.patch;        }
+                { name = "0002"; patch = ./odroid-hc2/0002-sctp-factor-out-stream-in-allocation.patch;	       }
+                { name = "0003"; patch = ./odroid-hc2/0003-sctp-introduce-struct-sctp_stream_out_ext.patch;    }
+                { name = "0004"; patch = ./odroid-hc2/0004-sctp-introduce-sctp_chunk_stream_no.patch;	       }
+                { name = "0005"; patch = ./odroid-hc2/0005-sctp-introduce-stream-scheduler-foundations.patch;  }
+                { name = "0006"; patch = ./odroid-hc2/0006-sctp-add-sockopt-to-get-set-stream-scheduler.patch; }
+                { name = "0007"; patch = ./odroid-hc2/0007-sctp-add-sockopt-to-get-set-stream-scheduler-paramet.patch; }
+                { name = "0008"; patch = ./odroid-hc2/0008-sctp-introduce-priority-based-stream-scheduler.patch;       }
+                { name = "0009"; patch = ./odroid-hc2/0009-sctp-introduce-round-robin-stream-scheduler.patch;	       }
+                { name = "0010"; patch = ./odroid-hc2/0010-sctp-make-array-sctp_sched_ops-static.patch;		       }
+                { name = "0011"; patch = ./odroid-hc2/0011-net-sctp-Convert-timers-to-use-timer_setup.patch;	       }
+                { name = "0012"; patch = ./odroid-hc2/0012-sctp-fix-error-return-code-in-sctp_send_add_streams.patch;  }
+                { name = "0013"; patch = ./odroid-hc2/0013-sctp-do-not-free-asoc-when-it-is-already-dead-in-sct.patch; }
+                { name = "0014"; patch = ./odroid-hc2/0014-sctp-use-the-right-sk-after-waking-up-from-wait_buf-.patch; }
+                { name = "0015"; patch = ./odroid-hc2/0015-sctp-check-stream-reset-info-len-before-making-recon.patch; }
+                { name = "0016"; patch = ./odroid-hc2/0016-sctp-use-sizeof-__u16-for-each-stream-number-length-.patch; }
+                { name = "0017"; patch = ./odroid-hc2/0017-sctp-only-allow-the-out-stream-reset-when-the-stream.patch; }
 
-      ];
-    };
+              ];
+            };
 
-    system.activationScripts.makeBootDir = {
-       text = ''
-         mkdir -p /boot
-       '';
-       deps = [ "specialfs" ];
-    };
+            system.activationScripts.makeBootDir = {
+               text = ''
+                 mkdir -p /boot
+               '';
+               deps = [ "specialfs" ];
+            };
 
-    sdImage = {
-      populateBootCommands =
-        let offsets = config.boot.boards.odroid-hc2.fw-offsets;
-        in ''
-          echo "This should populate ODROID binary blobs commands"
-          cp ${pkgs.ubootOdroidXU4}/u-boot-dtb.bin $NIX_BUILD_TOP/boot
-          target="$NIX_BUILD_TOP/boot" ${buildBootIni pkgs.buildPackages} ${baseSystem}
+            boot.kernelParams = [
+              "net.ifnames=1" # Predictable network interface names
+              "usb-storage.quirks=152d:0578:u" # Disable UAS on the USB3<->SATA interface
+            ];
 
-          # Write the binary blobs
-          echo "Fusing bl1.HardKernel"
-          dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/bl1.HardKernel of=$img seek=${builtins.toString offsets.signed-bl1-position}
+            nixpkgs.overlays = [ (self: super: {
+              dhcpcd = super.dhcpcd.override { udev = null; };
+            }) ];
 
-          echo "Fusing bl2.HardKernel"
-          dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/bl2.HardKernel of=$img seek=${builtins.toString offsets.bl2-position}
+            swapDevices = [
+              { device = "/dev/sda1"; }
+            ];
 
-          echo "Fusing u-boot"
-          dd conv=notrunc if=$NIX_BUILD_TOP/boot/u-boot-dtb.bin of=$img seek=${builtins.toString offsets.uboot-position}
+            fileSystems.intrustd = {
+              device = "/dev/sda2";
+              fsType = "btrfs";
+              mountPoint = "/mnt/intrustd";
+              noCheck = true;
+            };
 
-          echo "Fusing TZSW firmware"
-          dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/tzsw.HardKernel of=$img seek=${builtins.toString offsets.tzsw-position}
+            services.intrustd.stateDir = "/mnt/intrustd/data";
+          };
 
-          echo "Erase u-boot environment"
-          dd conv=notrunc if=/dev/zero of=$img seek=${builtins.toString offsets.env-position} bs=512 count=${builtins.toString offsets.env-size}
-        '';
-    };
+        sdImageOpts = lib.mkIf (config.intrustd.medium == "sd") {
+          sdImage = {
+            populateBootCommands =
+              let offsets = config.boot.boards.odroid-hc2.fw-offsets;
+              in ''
+                echo "This should populate ODROID binary blobs commands"
+                cp ${pkgs.ubootOdroidXU4}/u-boot-dtb.bin $NIX_BUILD_TOP/boot
+                target="$NIX_BUILD_TOP/boot" ${buildBootIni pkgs.buildPackages} ${baseSystem}
 
-    boot.kernelParams = [
-      "net.ifnames=1" # Predictable network interface names
-      "usb-storage.quirks=152d:0578:u" # Disable UAS on the USB3<->SATA interface
-    ];
+                # Write the binary blobs
+                echo "Fusing bl1.HardKernel"
+                dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/bl1.HardKernel of=$img seek=${builtins.toString offsets.signed-bl1-position}
 
-    nixpkgs.overlays = [ (self: super: {
-      dhcpcd = super.dhcpcd.override { udev = null; };
-    }) ];
+                echo "Fusing bl2.HardKernel"
+                dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/bl2.HardKernel of=$img seek=${builtins.toString offsets.bl2-position}
 
-    swapDevices = [
-      { device = "/dev/sda1"; }
-    ];
+                echo "Fusing u-boot"
+                dd conv=notrunc if=$NIX_BUILD_TOP/boot/u-boot-dtb.bin of=$img seek=${builtins.toString offsets.uboot-position}
 
-    fileSystems.intrustd = {
-      device = "/dev/sda2";
-      fsType = "btrfs";
-      mountPoint = "/mnt/intrustd";
-      noCheck = true;
-    };
+                echo "Fusing TZSW firmware"
+                dd conv=notrunc if=${pkgs.odroid-xu4-firmware}/tzsw.HardKernel of=$img seek=${builtins.toString offsets.tzsw-position}
 
-    services.intrustd.stateDir = "/mnt/intrustd/data";
-  };
+                echo "Erase u-boot environment"
+                dd conv=notrunc if=/dev/zero of=$img seek=${builtins.toString offsets.env-position} bs=512 count=${builtins.toString offsets.env-size}
+              '';
+          };
+        };
+     in lib.mkMerge [ sdImageOpts basicOdroid ];
 }
