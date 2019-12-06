@@ -91,9 +91,7 @@ in {
 #      enableUtmp = false;
 #    };
 
-    cloud-utils = super.cloud-utils.overrideDerivation (superOpts: {
-      binDeps = [ self.wget self.e2fsprogs self.file self.gnused self.gawk self.utillinux self.cdrkit ];
-    });
+    cloud-utils = super.cloud-utils.override { euca2ools = null; };
 
   })) ];
 
