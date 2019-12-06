@@ -11,11 +11,6 @@
   };
 
   options = with lib; {
-    intrustd.medium = mkOption {
-      type = types.string;
-      description = "Medium (vbox, sd, etc.)";
-    };
-
     intrustd.platform = mkOption {
       type = types.string;
       description = "Platform name";

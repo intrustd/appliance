@@ -6,33 +6,27 @@ in { platform ? "odroid-hc2", nixpkgs-path ? defaultPkgs, pkgRev ? "ci",
 let system = builtins.getAttr platform (import ./systems.nix);
 
     evalConfig = import (nixpkgs-path + /nixos/lib/eval-config.nix);
-    systemConfig = { module, system, ... }:
+    systemConfig = { module, system, medium, ... }:
       (evalConfig {
          inherit system;
          modules = [ module ];
+         extraArgs = { inherit medium nixpkgs-path; };
        });
-    makeSdImage = args:
-      with import nixpkgs-path { inherit system; };
-       system.config.system.build.sdImage;
 
 in rec {
   nixos = import (nixpkgs-path + /nixos/release.nix) { nixpkgs = import nixpkgs-path; };
 
-  media = { sd = (nixpkgs-path + /nixos/modules/installer/cd-dvd/sd-image.nix);
-            vbox = { imports = [
-              (nixpkgs-path + /nixos/modules/virtualisation/virtualbox-image.nix)
-              ./virtualbox.nix
-              ]; }; };
-
   systemImg = medium: systemConfig {
+     inherit medium;
      module = { config, ... }: {
-       imports = [ media."${medium}"
+       imports = [ ./sd-image.nix
+                   ./virtualbox-image.nix
                    ./nixos/boot.nix
                    ./nixos/kernel.nix
                    ./nixos/configuration.nix
                    ./nixos/profiles/minimal.nix ];
        config = {
-         intrustd = { inherit platform medium;
+         intrustd = { inherit platform;
                       updates.hydraJobUrl = hydraJobUrl; };
          nixpkgs.crossSystem = system;
          nixpkgs.pkgs = (import nixpkgs-path {
@@ -41,6 +35,9 @@ in rec {
 
          system.nixos.versionSuffix = "-intrustd";
          system.nixos.revision = pkgRev;
+
+         sdImage.enable = medium == "sd";
+         virtualbox.enable = medium == "vbox";
        };
      };
      system = system.config;
