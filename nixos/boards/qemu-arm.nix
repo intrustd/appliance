@@ -11,27 +11,22 @@ in
     };
   };
 
-  config = mkMerge [
-    (mkIf config.boot.boards.qemu-arm.enable {
+  config = mkIf config.boot.boards.qemu-arm.enable {
 
-      boot.initrd.availableKernelModules = [ "virtio_net" "virtio_pci" "virtio_blk" "virtio_scsi" "9p" "9pnet_virtio" ];
-      boot.initrd.kernelModules = [ "virtio_balloon" "virtio_console" "virtio_rng" ];
-      security.rngd.enable = false;
+    boot.initrd.availableKernelModules = [ "virtio_net" "virtio_pci" "virtio_blk" "virtio_scsi" "9p" "9pnet_virtio" ];
+    boot.initrd.kernelModules = [ "virtio_balloon" "virtio_console" "virtio_rng" ];
+    security.rngd.enable = false;
 
-      boot.initrd.postDeviceCommands =
-        ''
-          # Set the system time from the hardware clock to work around a
-          # bug in qemu-kvm > 1.5.2 (where the VM clock is initialised
-          # to the *boot time* of the host).
-          hwclock -s
-        '';
-        })
-
-    (mkIf (config.boot.boards.qemu-arm.enable && config.intrustd.medium == "sd") {
-
-      sdImage.populateBootCommands = ''
-          ${extlinux-conf-builder} -t 3 -c ${config.system.build.toplevel} -d $NIX_BUILD_TOP/boot
+    boot.initrd.postDeviceCommands =
+      ''
+        # Set the system time from the hardware clock to work around a
+        # bug in qemu-kvm > 1.5.2 (where the VM clock is initialised
+        # to the *boot time* of the host).
+        hwclock -s
       '';
-      })
-   ];
+
+#    sdImage.populateBootCommands = ''
+#        ${extlinux-conf-builder} -t 3 -c ${config.system.build.toplevel} -d $NIX_BUILD_TOP/boot
+#    '';
+  };
 }
