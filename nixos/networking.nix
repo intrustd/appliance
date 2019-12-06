@@ -1,4 +1,4 @@
-{config, pkgs, ...}:
+{config, pkgs, lib, ...}:
 
 {
   networking.useDHCP = false; # Don't auto-configure network interfaces
