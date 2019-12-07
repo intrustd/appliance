@@ -76,7 +76,7 @@
                          ];
 
         ntpdResolvConf = pkgs.writeText "resolv.conf" ''
-          ${map (s: "nameserver ${s}") baseDnsServers}
+          ${lib.concatStringsSep "\n" (map (s: "nameserver ${s}") baseDnsServers)}
         '';
     in {
       requires = [ "network-online" ];
