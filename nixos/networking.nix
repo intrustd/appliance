@@ -86,7 +86,7 @@
       };
 
       script = ''
-        exec ${pkgs.utillinux}/bin/unshare --mount ${ntpdScript}
+        exec ${pkgs.utillinux}/bin/unshare --mount ${pkgs.bash}/bin/bash ${ntpdScript}
       '';
     };
 
