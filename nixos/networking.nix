@@ -54,7 +54,7 @@
   networking.dnsExtensionMechanism = false;
 
   # enable time synchronization
-  enviroment.systemPackages = [ pkgs.openntpd_nixos ];
+  environment.systemPackages = [ pkgs.openntpd_nixos ];
   environment.etc."ntpd.conf".text = ''
     ${lib.concatStringsSep "\n" (map (s: "server ${s}") config.services.openntpd.servers)}
   '';
