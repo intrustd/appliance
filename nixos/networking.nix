@@ -64,7 +64,7 @@
                     };
   runit.services.openntpd =
     let ntpdScript = pkgs.writeScript "start-ntpd" ''
-          mount -o bind ${ntpdResolvConf} /etc/resolv.conf
+          ${pkgs.utillinux}/bin/mount -o bind ${ntpdResolvConf} /etc/resolv.conf
           exec ${pkgs.openntpd_nixos}/bin/ntpd -p ${pidFile} -s -d
         '';
 
