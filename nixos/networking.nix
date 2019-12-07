@@ -75,7 +75,7 @@
                            "2001:4860:4860::8888" "2001:4860:4860::8844" # Google
                          ];
 
-        ntpdResolvConf = ''
+        ntpdResolvConf = pkgs.writeText "resolv.conf" ''
           ${map (s: "nameserver ${s}") baseDnsServers}
         '';
     in {
