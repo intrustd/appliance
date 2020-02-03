@@ -90,12 +90,6 @@
       '';
     };
 
-  # enable avahi (mdns / bonjour)
-  services.avahi.enable = true;
-  services.avahi.ipv6 = true;
-  services.avahi.publish.enable = true;
-  services.avahi.publish.userServices = true;
-
   services.udev.extraRules = ''
     KERNEL=="tun", GROUP="intrustd", MODE="0660", OPTIONS+="static_node=net/tun"
   '';

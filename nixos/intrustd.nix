@@ -259,6 +259,8 @@ in {
        };
 
        nix.trustedUsers = [ "intrustd" ];
+
+       networking.mdnsServices.intrustd = ./intrustd.service;
      })
   ];
 }
