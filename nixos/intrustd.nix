@@ -227,7 +227,7 @@ in {
        runit.services = {
          intrustd = {
            logging = { enable = true; redirectStderr = true; };
-           requires = [ "network" "nix-daemon" "mounts" "devlog" ];
+           requires = [ "network" "nix-daemon" "mounts" "syslog" ];
            path = [ config.nix.package.out pkgs.nix-fetch ];
 
            waitTime = 3600; # Wait up to an hour for everything to start. This should be way more than enough
