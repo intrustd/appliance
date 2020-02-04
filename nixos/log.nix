@@ -2,12 +2,12 @@
 
 {
   runit.services.syslog = {
-    path = [ pkgs.runit ];
+    path = [ pkgs.socklog ];
     user = "nobody";
 
     script = ''
       exec 2>&1
-      ${pkgs.runit}/bin/socklog unix /dev/log
+      socklog unix /dev/log
     '';
   };
 }
