@@ -1,9 +1,10 @@
 {config, pkgs, lib, ...}:
 
+with lib;
 {
   options = {
     networking.mdnsServices = mkOption {
-      type = with lib.types; attrsOf (either str path);
+      type = with types; attrsOf (either str path);
       default = {};
       description = ''
         Custom avahi *.service files to publish

@@ -3,7 +3,7 @@
 let admin-app = fetchFromGitHub {
       owner = "intrustd";
       repo = "admin";
-      rev = "3b655a5b6343fc3adf75af817f020358a49ba0a6";
+      rev = "e1cf3ab802b97df1257ad4f48343a10f7bf88e43";
       sha256 = "1pzvqskycvgsq8p5razvrhfmx2fviymrmf8hznq11iziwxrrkw90";
     };
 
