@@ -2,7 +2,7 @@
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 
 <service-group>
-  <name>Intrustd Admin Service</name>
+  <name replace-wildcards="yes">%h</name>
 
   <service>
     <type>_intrustd._tcp</type>

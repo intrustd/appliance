@@ -23,6 +23,9 @@
     externalInterface = "eth0";
   };
 
+  networking.mdnsServices.ssh = ./ssh.service;
+  networking.mdnsServices.sftp-ssh = ./sftp-ssh.service;
+
   # enable unbound
   services.nscd.enable = false; # Using unbound instead
   services.unbound = {
