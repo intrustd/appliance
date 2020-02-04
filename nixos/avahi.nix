@@ -12,7 +12,7 @@ with lib;
     };
   };
 
-  configuration = {
+  config = {
     # enable avahi (mdns / bonjour)
     services.avahi.enable = true;
     services.avahi.ipv6 = true;
