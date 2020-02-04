@@ -227,8 +227,8 @@ in {
        runit.services = {
          intrustd = {
            logging = { enable = true; redirectStderr = true; };
-           requires = [ "network" "nix-daemon" "mounts" ];
-	   path = [ config.nix.package.out pkgs.nix-fetch ];
+           requires = [ "network" "nix-daemon" "mounts" "devlog" ];
+           path = [ config.nix.package.out pkgs.nix-fetch ];
 
            waitTime = 3600; # Wait up to an hour for everything to start. This should be way more than enough
 
@@ -239,7 +239,7 @@ in {
              set -e
 
              ${intrustdInitScript}
-	     cd ${stateDir}
+	           cd ${stateDir}
 
              ${installAppFn}
 

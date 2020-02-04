@@ -1,7 +1,8 @@
 {lib, pkgs, config, ...}:
 
 {
-  imports = [ ./networking.nix ./ssh.nix ./intrustd.nix ./apps.nix ./updates.nix ./avahi.nix ];
+  imports = [ ./networking.nix ./ssh.nix ./intrustd.nix ./apps.nix ./updates.nix ./avahi.nix
+              ./log.nix ];
 
   nixpkgs.overlays = [
     (self: super: {
