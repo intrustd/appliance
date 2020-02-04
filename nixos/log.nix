@@ -10,5 +10,8 @@
       exec 2>&1
       ${pkgs.runit}/bin/chpst -U nobody socklog unix /dev/log
     '';
+
+    logging.redirectStderr = true;
+    logging.enable = true;
   };
 }
