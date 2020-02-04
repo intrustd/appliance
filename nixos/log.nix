@@ -3,11 +3,12 @@
 {
   runit.services.syslog = {
     path = [ pkgs.socklog ];
-    user = "nobody";
 
+    # We don't use 'user="nobody"' because socklog will change users
+    # automatically and we need root for /dev
     script = ''
       exec 2>&1
-      socklog unix /dev/log
+      ${pkgs.runit}/bin/chpst -U nobody socklog unix /dev/log
     '';
   };
 }
