@@ -46,7 +46,8 @@ while read -r line; do
                 unset DOWNLOAD_ONLY
             fi
 
-            LOG=$(echo "$UPDATE_INFO" | @jq@ -r .log)
+            mkdir -p /var/log/system-updates
+            LOG=/var/log/system-updates/$(date -Iseconds)
 
             (
                 @flock@ -x 200

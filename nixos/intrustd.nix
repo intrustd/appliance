@@ -234,6 +234,7 @@ in {
 
            environment.INTRUSTDPATH = "${config.services.intrustd.package.applianced}/bin";
            environment.HOME = stateDir;
+           environment.INTRUSTD_UPDATE_LOG_DIR = "/var/log/updates";
 
            script = ''
              set -e
