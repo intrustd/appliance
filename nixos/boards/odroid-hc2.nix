@@ -1,5 +1,54 @@
 { config, lib, pkgs, ... }:
-let sd-positions = with lib; {
+let kernel4 =
+      pkgs.linuxPackages_custom rec {
+        version = "4.14.78"; # 77 for bak
+
+              src = pkgs.fetchFromGitHub {
+                owner = "hardkernel";
+                repo = "linux";
+                rev = "c3e379003dd5272b48f2676c21abf0493aac4e33";
+                sha256 = "0139qciaf1vlz41s9idjbcx20c1svrp1l7qaazfkwfx52ghb4pvv";
+              };
+
+              configfile = ./odroid-hc-config.config;
+
+              kernelPatches = [
+                { name = "0001"; patch = ./odroid-hc2/0001-sctp-factor-out-stream-out-allocation.patch;        }
+                { name = "0002"; patch = ./odroid-hc2/0002-sctp-factor-out-stream-in-allocation.patch;	       }
+                { name = "0003"; patch = ./odroid-hc2/0003-sctp-introduce-struct-sctp_stream_out_ext.patch;    }
+                { name = "0004"; patch = ./odroid-hc2/0004-sctp-introduce-sctp_chunk_stream_no.patch;	       }
+                { name = "0005"; patch = ./odroid-hc2/0005-sctp-introduce-stream-scheduler-foundations.patch;  }
+                { name = "0006"; patch = ./odroid-hc2/0006-sctp-add-sockopt-to-get-set-stream-scheduler.patch; }
+                { name = "0007"; patch = ./odroid-hc2/0007-sctp-add-sockopt-to-get-set-stream-scheduler-paramet.patch; }
+                { name = "0008"; patch = ./odroid-hc2/0008-sctp-introduce-priority-based-stream-scheduler.patch;       }
+                { name = "0009"; patch = ./odroid-hc2/0009-sctp-introduce-round-robin-stream-scheduler.patch;	       }
+                { name = "0010"; patch = ./odroid-hc2/0010-sctp-make-array-sctp_sched_ops-static.patch;		       }
+                { name = "0011"; patch = ./odroid-hc2/0011-net-sctp-Convert-timers-to-use-timer_setup.patch;	       }
+                { name = "0012"; patch = ./odroid-hc2/0012-sctp-fix-error-return-code-in-sctp_send_add_streams.patch;  }
+                { name = "0013"; patch = ./odroid-hc2/0013-sctp-do-not-free-asoc-when-it-is-already-dead-in-sct.patch; }
+                { name = "0014"; patch = ./odroid-hc2/0014-sctp-use-the-right-sk-after-waking-up-from-wait_buf-.patch; }
+                { name = "0015"; patch = ./odroid-hc2/0015-sctp-check-stream-reset-info-len-before-making-recon.patch; }
+                { name = "0016"; patch = ./odroid-hc2/0016-sctp-use-sizeof-__u16-for-each-stream-number-length-.patch; }
+                { name = "0017"; patch = ./odroid-hc2/0017-sctp-only-allow-the-out-stream-reset-when-the-stream.patch; }
+
+              ];
+            };
+
+    kernel5 =  pkgs.linuxPackages_custom rec {
+              version = "5.4.3";
+
+              src = pkgs.fetchFromGitHub {
+                owner = "mihailescu2m";
+                repo = "linux";
+                rev = "12f18495dc94dccd8b853ae54c3e3ab054843ebb";
+                sha256 = "03a7de42376fffd48331081f7cb1ba408daff5593e7307fb4bf7dd5767739cd6";
+              };
+
+              configfile = ./odroid-hc-config-k5.config;
+            };
+
+
+    sd-positions = with lib; {
       signed-bl1-position = mkDefault 1;
       bl2-position = mkDefault 31;
       uboot-position = mkDefault 63;
@@ -117,41 +166,7 @@ in {
             system.build.loader.id = "intrustd-odroid";
 
             boot.initrd.checkJournalingFS = false;
-            boot.kernelPackages = pkgs.linuxPackages_custom rec {
-              version = "4.14.78"; # 77 for bak
-
-              src = pkgs.fetchFromGitHub {
-                owner = "hardkernel";
-                repo = "linux";
-                rev = "c3e379003dd5272b48f2676c21abf0493aac4e33";
-                sha256 = "0139qciaf1vlz41s9idjbcx20c1svrp1l7qaazfkwfx52ghb4pvv";
-        #        url = "mirror://kernel/linux/kernel/v4.x/linux-${version}.tar.xz";
-        #        sha256 = "1y567wkr4p7hywq3pdw06yc4hi16rp1vkx764wzy5nyajkhz95h4";
-              };
-
-              configfile = ./odroid-hc-config.config;
-
-              kernelPatches = [
-                { name = "0001"; patch = ./odroid-hc2/0001-sctp-factor-out-stream-out-allocation.patch;        }
-                { name = "0002"; patch = ./odroid-hc2/0002-sctp-factor-out-stream-in-allocation.patch;	       }
-                { name = "0003"; patch = ./odroid-hc2/0003-sctp-introduce-struct-sctp_stream_out_ext.patch;    }
-                { name = "0004"; patch = ./odroid-hc2/0004-sctp-introduce-sctp_chunk_stream_no.patch;	       }
-                { name = "0005"; patch = ./odroid-hc2/0005-sctp-introduce-stream-scheduler-foundations.patch;  }
-                { name = "0006"; patch = ./odroid-hc2/0006-sctp-add-sockopt-to-get-set-stream-scheduler.patch; }
-                { name = "0007"; patch = ./odroid-hc2/0007-sctp-add-sockopt-to-get-set-stream-scheduler-paramet.patch; }
-                { name = "0008"; patch = ./odroid-hc2/0008-sctp-introduce-priority-based-stream-scheduler.patch;       }
-                { name = "0009"; patch = ./odroid-hc2/0009-sctp-introduce-round-robin-stream-scheduler.patch;	       }
-                { name = "0010"; patch = ./odroid-hc2/0010-sctp-make-array-sctp_sched_ops-static.patch;		       }
-                { name = "0011"; patch = ./odroid-hc2/0011-net-sctp-Convert-timers-to-use-timer_setup.patch;	       }
-                { name = "0012"; patch = ./odroid-hc2/0012-sctp-fix-error-return-code-in-sctp_send_add_streams.patch;  }
-                { name = "0013"; patch = ./odroid-hc2/0013-sctp-do-not-free-asoc-when-it-is-already-dead-in-sct.patch; }
-                { name = "0014"; patch = ./odroid-hc2/0014-sctp-use-the-right-sk-after-waking-up-from-wait_buf-.patch; }
-                { name = "0015"; patch = ./odroid-hc2/0015-sctp-check-stream-reset-info-len-before-making-recon.patch; }
-                { name = "0016"; patch = ./odroid-hc2/0016-sctp-use-sizeof-__u16-for-each-stream-number-length-.patch; }
-                { name = "0017"; patch = ./odroid-hc2/0017-sctp-only-allow-the-out-stream-reset-when-the-stream.patch; }
-
-              ];
-            };
+            boot.kernelPackages = kernel5;
 
             system.activationScripts.makeBootDir = {
                text = ''
