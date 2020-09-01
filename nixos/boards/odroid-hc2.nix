@@ -166,7 +166,7 @@ in {
             system.build.loader.id = "intrustd-odroid";
 
             boot.initrd.checkJournalingFS = false;
-            boot.kernelPackages = kernel5;
+            boot.kernelPackages = kernel4;
 
             system.activationScripts.makeBootDir = {
                text = ''
